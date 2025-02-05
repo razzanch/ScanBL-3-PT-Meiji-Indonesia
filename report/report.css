@@ -1,0 +1,162 @@
+:root {
+    --color-white: #FFFFFF;
+    --color-black: #000000;
+    --color-grey: #F5F5F5;
+    --color-accent: #000000; /* Hitam tegas untuk teks formal */
+    --color-border: #000000; /* Warna border hitam solid */
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif; /* Font formal */
+    font-size: 12pt;
+    background-color: var(--color-grey);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--color-black);
+}
+
+.report-container {
+    background-color: var(--color-white);
+    width: 210mm; /* Ukuran A4 */
+    min-height: 297mm; /* Tinggi A4 */
+    padding: 25mm;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-border);
+}
+
+.report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.report-header img {
+    height: 60px; /* Ukuran logo */
+}
+
+.report-title {
+    text-align: right;
+    color: var(--color-black);
+}
+
+.report-title h1 {
+    margin: 0;
+    font-size: 18pt;
+    font-weight: bold;
+    color: var(--color-black);
+    text-transform: uppercase;
+}
+
+.report-title p {
+    margin: 5px 0;
+    font-size: 12pt;
+    font-weight: normal;
+}
+
+.report-details table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 25px;
+    font-size: 10pt;
+}
+
+.report-details th {
+    background-color: var(--color-grey); /* Latar abu untuk header */
+    color: var(--color-black); /* Hitam tegas */
+    padding: 10px 8px;
+    text-transform: uppercase;
+    font-size: 10pt;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border: 1px solid var(--color-border);
+    text-align: left;
+}
+
+.report-details td {
+    border: 1px solid var(--color-border);
+    padding: 8px;
+    text-align: left;
+    font-size: 10pt;
+    color: var(--color-black);
+}
+
+.report-details tr:nth-child(even) {
+    background-color: var(--color-grey); /* Baris bergantian */
+}
+
+.report-summary {
+    background-color: var(--color-grey);
+    padding: 15px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 12pt;
+    color: var(--color-black);
+    border-top: 2px solid var(--color-border);
+}
+
+
+.report-actions {
+    display: flex; /* Mengatur tombol agar sejajar secara horizontal */
+    justify-content: center; /* Center tombol secara horizontal */
+    align-items: center; /* Center tombol secara vertikal */
+    gap: 15px; /* Jarak antar tombol */
+    margin: 20px auto; /* Centering di tengah halaman */
+}
+
+.report-actions button {
+    padding: 10px 20px;
+    border: 1px solid transparent;
+    background-color: #6A6A6A; /* Warna dasar tombol */
+    color: white;
+    font-size: 12pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 50px; /* Membuat tombol lebih melengkung */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex; /* Membuat konten di dalam tombol fleksibel */
+    align-items: center; /* Center konten di dalam tombol */
+    gap: 10px; /* Jarak antara teks dan ikon */
+}
+
+.report-actions button img {
+    width: 55px; /* Ukuran ikon */
+    height: 55px;
+}
+
+
+.report-actions button:hover {
+    background-color: #202C31; /* Warna ketika di-hover */
+    color: #FFFFFF; /* Tetap putih untuk kontras */
+}
+
+
+/* Gaya Khusus Mode Cetak */
+@media print {
+    body {
+        background: none;
+        color: var(--color-black);
+    }
+
+    .report-container {
+        box-shadow: none;
+        border: none;
+    }
+
+    .report-details th, .report-details td {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .report-actions {
+        display: none;
+    }
+}

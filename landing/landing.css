@@ -1,0 +1,442 @@
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../services/fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: 400; /* Regular */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../services/fonts/Montserrat-Bold.ttf') format('truetype');
+    font-weight: 700; /* Bold */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../services/fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: 500; /* Medium */
+    font-style: normal;
+}
+
+*{ margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat'; }
+
+body {
+    margin: 0;
+    padding-top: 80px; /* Sesuaikan dengan tinggi header */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+/* HEADER START */
+header {
+    width: 100%;
+    position: fixed; /* Membuat header tetap di posisi atas saat scroll */
+    top: 0; /* Pastikan header berada di bagian paling atas */
+    left: 0; /* Pastikan header dimulai dari sisi kiri */
+    z-index: 1000; /* Pastikan header berada di atas elemen lainnya */
+    background-color: white; /* Warna latar belakang */
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-container img {
+    height: 53px;
+    width: 150PX;
+}
+
+.logo-container span {
+    font-size: 14px;
+    font-weight: 200;
+    margin-top: 30px;
+}
+
+.start-button {
+    background-color: #ED1B24;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.start-button:hover {
+    background-color: #d41820;
+}
+/* HEADER END */
+
+
+
+
+
+/* FOOTER START */
+footer {
+    background-color: #ED1B24;
+    padding: 40px 0;
+    color: white;
+    margin-top: 0;
+    z-index: 100;
+}
+
+.footer-container {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 60px;
+}
+
+.footer-section {
+    flex: 1;
+}
+
+.footer-section h3 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.footer-section p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    font-weight: 400;
+}
+
+.footer-section a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer-section a:hover {
+    color: #FFD700;
+    text-decoration: underline;
+}
+
+.footer-section img {
+    height: 53px;
+    width: 200px;
+    margin-bottom: 20px;
+}
+
+.footer-section:last-child {
+    max-width: 400px;
+    margin-top: -10px;
+}
+
+.footer-section:nth-child(2) {
+    margin-left: 120px;
+}
+
+.footer-section:last-child p {
+    text-align: justify;
+}
+
+/* Responsive Design - Mulai dari layar laptop yang di-split */
+@media screen and (max-width: 1200px) {
+    .footer-container {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .footer-section {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .footer-section:nth-child(2) {
+        margin-left: 0;
+    }
+
+    .footer-section:last-child {
+        margin-top: 0;
+    }
+
+    .footer-section img {
+        max-width: 180px;
+        height: auto;
+    }
+}
+
+/* Optimasi tambahan untuk layar mobile */
+@media screen and (max-width: 480px) {
+    footer {
+        padding: 30px 0;
+    }
+
+    .footer-container {
+        width: 95%;
+        gap: 20px;
+    }
+
+    .footer-section h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .footer-section p {
+        font-size: 13px;
+    }
+}
+/* FOOTER END */
+
+
+
+
+
+
+/* MAIN CONTENT START */
+main {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    flex: 1; /* This will make main take remaining space */
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.image-container {
+    flex: 1;
+    display: flex;
+    position: relative; /* Wajib untuk positioning absolut */
+}
+
+
+.image-container img {
+    width: 100%;
+    height: 600px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s ease, opacity 0.8s ease;
+}
+
+.image-fade-out {
+    opacity: 0;
+    transform: scale(1.1);
+}
+
+.image-fade-in {
+    opacity: 1;
+    transform: scale(1);
+}
+
+
+
+.indicator-container {
+    position: absolute; 
+    bottom: 10%;
+    left: 50%; 
+    transform: translateX(-50%); 
+    display: flex;
+    gap: 15px;
+    z-index: 10; 
+}
+
+.indicator {
+    width: 20px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
+
+.indicator.active {
+    background-color: #ED1B24;
+}
+
+.overlay-container {
+    position: absolute; /* Posisi overlay diatur agar berada di atas gambar */
+    top: 10%; /* Atur jarak dari atas */
+    left: 13%; /* Atur jarak dari kiri */
+    width: 300px; /* Lebar container sesuai kebutuhan */
+
+    background-color: rgba(255, 255, 255, 0.3); /* Latar belakang hitam dengan opacity 70% */
+    color: white; /* Warna teks putih */
+    padding: 20px; /* Jarak dalam untuk konten */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Posisikan konten di tengah secara horizontal */
+    gap: 10px; /* Jarak antara elemen dalam flexbox */
+    border-radius: 20px;
+    transition: transform 0.8s ease, opacity 0.8s ease, left 0.8s ease;
+    backdrop-filter: blur(8px);
+}
+.overlay-container.slide-out {
+    opacity: 0;
+    transform: translateX(-100px);
+}
+
+.overlay-container.slide-in {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.overlay-container img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    margin-bottom: 30px;
+    animation: verticalLoopAnimation 10s ease-in-out infinite;
+    transform-origin: top;
+}
+
+@keyframes verticalLoopAnimation {
+    0% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+    45% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+    55% {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+    60% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+.overlay-container p {
+    font-size: 16px; /* Ukuran font untuk teks */
+    font-weight: 500;
+    color: black; /* Warna teks putih agar kontras dengan latar belakang */
+    line-height: 2.5; /* Jarak antar baris teks */
+    text-align: justify; /* Teks rata kiri-kanan */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+
+/* Modifikasi style untuk arrow navigation */
+.arrow {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transform: none;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    z-index: 20;
+    padding: 0 20px;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+.arrow-left {
+    left: 0;
+}
+
+.arrow-right {
+    right: 0;
+}
+
+.arrow-right:hover {
+    color: #FFD700;
+    background-image: -webkit-linear-gradient(left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);
+    background-image: -o-linear-gradient(left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);
+    background-image: -webkit-gradient(linear, left top, right top, from(rgba(0, 0, 0, .0001)), to(rgba(0, 0, 0, .5)));
+    background-image: linear-gradient(to right, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#80000000', GradientType=1);
+    background-repeat: repeat-x;
+}
+
+.arrow-left:hover {
+    color: #FFD700;
+    background-image: -webkit-linear-gradient(right, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);
+    background-image: -o-linear-gradient(right, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);
+    background-image: -webkit-gradient(linear, right top, left top, from(rgba(0, 0, 0, .0001)), to(rgba(0, 0, 0, .5)));
+    background-image: linear-gradient(to left, rgba(0, 0, 0, .0001) 0%, rgba(0, 0, 0, .5) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#80000000', GradientType=1);
+    background-repeat: repeat-x;
+}
+
+
+
+/* Responsif untuk layar kecil */
+@media screen and (max-width: 768px) {
+    .arrow {
+        padding: 0 15px;
+        font-size: 20px;
+    }
+}
+
+/* Media Queries for Responsive Design */
+@media screen and (max-width: 1366px) {
+    .image-container {
+        min-height: 350px;
+    }
+    
+    .overlay-container {
+        width: 250px;
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    .image-container {
+        min-height: 300px;
+    }
+    
+    .overlay-container {
+        width: 220px;
+    }
+    
+    .overlay-container p {
+        font-size: 15px;
+        line-height: 2.0;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .image-container {
+        min-height: 250px;
+    }
+    
+    .overlay-container {
+        width: 200px;
+        padding: 10px;
+    }
+    
+    .indicator {
+        width: 12px;
+        height: 12px;
+    }
+}
+/* MAIN CONTENT END */
