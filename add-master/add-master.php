@@ -160,7 +160,7 @@ function redirectBasedOnRole() {
                         </div>
                         <div class="form-row">
                             <label for="jam-code">JAM-Code</label>
-                            <input type="text" id="jam-code" name="jam-code" placeholder="Enter JAM-Code">
+                            <input type="text" id="jam-code" name="jam-code" placeholder="Enter JAM-Code" required>
                         </div>
                     </div>
 

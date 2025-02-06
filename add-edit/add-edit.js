@@ -132,9 +132,46 @@ document.addEventListener("DOMContentLoaded", function () {
         systemCounterLarge.value = "";
     }
 
+    function resetFormBawah2() {
+        productField.value = "";
+        rssCodeField.value = "";
+        jamCodeField.value = "";
+        lotNumberField.value = "";
+        dateField.value = "";
+        counterDisplayField.value = "";
+        systemCounterInput.value = "";
+        systemCounterLarge.value = "";
+    }
+
+
     // Event listener untuk reset form bawah saat product diubah di form atas
     productDropdown.addEventListener("change", function () {
         resetFormBawah();
+    });
+
+    noLotDropdown.addEventListener("change", function () {
+        resetFormBawah2();
+    });
+
+
+    noLotDropdown.addEventListener('click', () => {
+        if (productDropdown.value === '') {
+            showNotification('Please select a Product first.', false);
+            noLotDropdown.blur();
+        }
+    });
+
+    
+
+    systemCounterInput.addEventListener('click', () => {
+        let selectedProduct = productDropdown.value;
+        let selectedNoLot = noLotDropdown.value;
+        let counter = counterField.value;
+
+        if (!selectedProduct || !selectedNoLot || !counter) {
+            showNotification('Please select Product, No. Lot, and ensure Counter is filled.', false);
+            systemCounterInput.blur();
+        }
     });
 
     // Fetch product list
@@ -175,6 +212,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+
+
     // Fetch and display process data when "Process" button is clicked
     processButton.addEventListener("click", function (e) {
         e.preventDefault();
@@ -183,9 +222,10 @@ document.addEventListener("DOMContentLoaded", function () {
         let counter = counterField.value;
 
         if (!selectedProduct || !selectedNoLot || !counter) {
-            alert("Please select Product, No. Lot, and ensure Counter is filled.");
-            return;
+            showNotification('Please select Product, No. Lot, and ensure Counter is filled.', false);
+            return
         }
+
 
         fetch(`fetch_process_data.php?product=${encodeURIComponent(selectedProduct)}&no_lot=${encodeURIComponent(selectedNoLot)}`)
             .then(response => response.json())
@@ -198,7 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     counterDisplayField.value = data.counter;
                     dateField.value = getCurrentDateTime(); // Format: YYYY-MM-DD HH:MM:SS
 
-                    alert("Data successfully retrieved and displayed.");
+                    showNotification("Data successfully retrieved and displayed.",true);
                     systemCounterInput.focus();
                     lotNumberField.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -210,9 +250,137 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
+    function showNotification(message, isSuccess) {
+        // Buat elemen notifikasi
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+<div style="display: flex; align-items: center; gap: 10px;">
+<img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+<span>${message}</span>
+</div>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 300px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease-out;
+        `;
+ 
+        // Tambahkan notifikasi ke body
+        document.body.appendChild(notification);
+ 
+        // Hapus notifikasi setelah 2 detik
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-out';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500); // Waktu untuk animasi slideOut
+        }, 2000); // Notifikasi muncul selama 2 detik
+    }
+ 
+    // Animasi CSS untuk notifikasi
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+
+
+
+
+    function showNotificationMismatch(message, isSuccess) {
+        // Buat elemen notifikasi
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+<div style="display: flex; align-items: center; gap: 10px;">
+<img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+<span>${message}</span>
+</div>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 300px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease-out;
+        `;
+ 
+        // Tambahkan notifikasi ke body
+        document.body.appendChild(notification);
+    }
+ 
+    // Animasi CSS untuk notifikasi
+    const style2 = document.createElement('style');
+    style2.innerHTML = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style2);
+
+
     //save
 
     loadingSpinner.classList.add('loading-spinner');
+
 
     // Event listener untuk System Counter
     systemCounterInput.addEventListener('input', function () {
@@ -221,6 +389,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (inputValue === rssCodeField.value) {
             currentCounter = Number(counterDisplayField.value) + 1; // Increment counter
             counterDisplayField.value = currentCounter; // Update tampilan counter
+            counterField.value = currentCounter;
             systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
 
             dateField.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
@@ -246,8 +415,14 @@ document.addEventListener("DOMContentLoaded", function () {
             clearTimeout(timeoutId); // Hapus timeout sebelumnya
 
             timeoutId = setTimeout(() => saveCounterToDatabase(), 1500); // Simpan setelah 1,5 detik
+        }else{
+
+        clearTimeout(timeoutId); // Hapus timeout sebelumnya
+
+        timeoutId = setTimeout(() => showNotification('Mismatch',false), 1500); // Simpan setelah 1,5 detik
         }
     });
+
 
     
     // Fungsi untuk mengirim data ke database setelah 1 detik
@@ -255,12 +430,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const product = productField.value;
         const lotNumber = lotNumberField.value;
         const date = getCurrentDateTime();
-
-        if (!product || !lotNumber) {
-            alert('Harap pilih produk dan isi No Lot terlebih dahulu!');
-            loadingSpinner.style.display = 'none'; // Sembunyikan animasi jika ada kesalahan
-            return;
-        }
 
         const formData = new URLSearchParams();
         formData.append('product', product);

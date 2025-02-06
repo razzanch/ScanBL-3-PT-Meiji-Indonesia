@@ -171,6 +171,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Tampilkan semua data
             window.location.href = 'product.php';
         }
+        else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
+            const searchValue = searchField.value.trim();
+            if (searchValue !== '') {
+                // Redirect dengan parameter pencarian
+                window.location.href = `product.php?search=${encodeURIComponent(searchValue)}`;
+            }
+        }
     });
 
     // Event listener untuk pencarian dengan tombol Enter
@@ -235,6 +242,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
     }
+
+    if (tableBody) {
+        let rows = tableBody.getElementsByTagName("tr");
+    
+    if(urlParams.get('search')){
+        // Jika hanya ada satu baris dan mengandung teks "Data tidak ditemukan"
+        if (rows.length === 1 && rows[0].textContent.includes("Data tidak ditemukan")) {
+            showNotification("Data not found", 'error');
+        } else if (rows.length > 0) {
+            showNotification("Data found");
+        }
+    }
+}
 
     // Initial icon state
     updateSearchFieldIcon();

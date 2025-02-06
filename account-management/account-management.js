@@ -206,6 +206,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 localStorage.setItem('shouldScrollToTable', 'true');
                 window.location.href = 'account-management.php';
             }
+
+            else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
+                const searchValue = searchField.value.trim();
+                if (searchValue !== '') {
+                    localStorage.setItem('shouldScrollToTable', 'true');
+                    window.location.href = `account-management.php?search=${encodeURIComponent(searchValue)}`;
+                }
+            }
+
         });
 
         searchField.addEventListener('keydown', function(event) {
@@ -222,7 +231,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         searchField.addEventListener('input', function() {
             const searchValue = searchField.value.trim();
-            updateSearchFieldIcon();
 
             if (searchValue === '' && !isBarcodeScanMode) {
                 window.location.href = 'account-management.php';
@@ -329,11 +337,22 @@ if (
     window.history.replaceState({}, '', newUrl);
 }
 
-    // Initialize
-    if (searchField) {
+if (tableBody) {
+    let rows = tableBody.getElementsByTagName("tr");
+
+if(urlParams.get('search')){
+    // Jika hanya ada satu baris dan mengandung teks "Data tidak ditemukan"
+    if (rows.length === 1 && rows[0].textContent.includes("Data tidak ditemukan")) {
+        showNotification("Data not found", 'error');
+    } else if (rows.length > 0) {
+        showNotification("Data found");
+    }
+}
+}
+
+    
         updateSearchFieldIcon();
         restoreSearchState();
-    }
 
     // Set current date when typing in name, username, or password fields
     function setCurrentDateTime() {

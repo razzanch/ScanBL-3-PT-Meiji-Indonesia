@@ -121,6 +121,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // Tampilkan semua data
             window.location.href = 'overview.php';
         }
+        else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
+            const searchValue = searchField.value.trim();
+            if (searchValue !== '') {
+                // Redirect dengan parameter pencarian
+                window.location.href = `overview.php?search=${encodeURIComponent(searchValue)}`;
+            }
+        }
     });
 
     // Event listener untuk pencarian dengan tombol Enter
@@ -172,8 +179,18 @@ if (urlParams.get('delete_error')) {
     showNotification('Error deleting record', false); // Notifikasi gagal
 }
 
+if (tableBody) {
+    let rows = tableBody.getElementsByTagName("tr");
 
-
+if(urlParams.get('search')){
+    // Jika hanya ada satu baris dan mengandung teks "Data tidak ditemukan"
+    if (rows.length === 1 && rows[0].textContent.includes("Data tidak ditemukan")) {
+        showNotification("Data not found", false);
+    } else if (rows.length > 0) {
+        showNotification("Data found", true);
+    }
+}
+}
 
 // Fungsi untuk menampilkan notifikasi
 function showNotification(message, isSuccess) {

@@ -83,20 +83,20 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const productDropdown = document.getElementById('product');
     const lotDropdown = document.getElementById('nolot');
-
+ 
     // Disable lot dropdown initially
     lotDropdown.disabled = false;
-
+ 
     // Populate Product Dropdown
     async function fetchProducts() {
         try {
             const response = await fetch('previewget.php?action=get_products');
             const result = await response.json();
-
+ 
             if (result.status !== 'success') {
                 throw new Error(result.message || 'Failed to fetch products');
             }
-
+ 
             result.data.forEach(product => {
                 const option = document.createElement('option');
                 option.value = product.id_master;
@@ -105,24 +105,24 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error('Error:', error);
-            alert('Unable to load products. Please try again.');
+            showNotification('Unable to load products. Please try again.', false);
         }
     }
-
+ 
     // Populate Lot Dropdown
     async function fetchLots(selectedProduct) {
         try {
             lotDropdown.innerHTML = '<option value="">Select No. Lot</option>';
-
+ 
             if (!selectedProduct) return;
-
+ 
             const response = await fetch(`previewget.php?action=get_lots&product=${selectedProduct}`);
             const result = await response.json();
-
+ 
             if (result.status !== 'success') {
                 throw new Error(result.message || 'Failed to fetch lot numbers');
             }
-
+ 
             result.data.forEach(lot => {
                 const option = document.createElement('option');
                 option.value = lot;
@@ -131,17 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error('Error:', error);
-            alert('Unable to load lot numbers. Please try again.');
+            showNotification('Unable to load lot numbers. Please try again.', false);
         }
     }
-
+ 
     // Initial product fetch
     fetchProducts();
-
+ 
     // Event listener for product dropdown
     productDropdown.addEventListener('change', () => {
         const selectedProduct = productDropdown.value;
-
+ 
         if (selectedProduct === '') {
             // Disable lot dropdown and reset
             lotDropdown.disabled = true;
@@ -152,29 +152,26 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchLots(selectedProduct);
         }
     });
-
+ 
     // Event listener for lot dropdown
     lotDropdown.addEventListener('click', () => {
         if (productDropdown.value === '') {
-            alert('Please select a Product first.');
+            showNotification('Please select a Product first.', false);
+            lotDropdown.blur();
         }
     });
-
+ 
     // Event listener for form submission
     document.querySelector('.barcode-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
         const productDropdown = document.getElementById('product');
         const lotDropdown = document.getElementById('nolot');
-    
         console.log('Selected Product:', productDropdown.value);
         console.log('Selected Lot:', lotDropdown.value);
-    
         if (productDropdown.value === '' || lotDropdown.value === '') {
-            alert('Please select both Product and Lot Number.');
+            showNotification('Please select both Product and Lot Number.', false);
             return;
         }
-    
         try {
             const response = await fetch('previewcheck.php', {
                 method: 'POST',
@@ -183,14 +180,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: `product=${productDropdown.value}&nolot=${lotDropdown.value}`
             });
-    
             const result = await response.json();
             console.log(result);
-    
             if (result.status === 'success') {
                 window.location.href = '../report/report.php';
             } else {
-                alert('Data not found');
+                showNotification('Data not found', false);
                 productDropdown.value = '';
                 lotDropdown.value = '';
                 lotDropdown.disabled = true;
@@ -198,40 +193,100 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            showNotification('An error occurred. Please try again.', false);
         }
     });
-    
+    // Fungsi untuk menampilkan notifikasi
+    function showNotification(message, isSuccess) {
+        // Buat elemen notifikasi
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+<div style="display: flex; align-items: center; gap: 10px;">
+<img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+<span>${message}</span>
+</div>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 300px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease-out;
+        `;
+ 
+        // Tambahkan notifikasi ke body
+        document.body.appendChild(notification);
+ 
+        // Hapus notifikasi setelah 2 detik
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-out';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500); // Waktu untuk animasi slideOut
+        }, 2000); // Notifikasi muncul selama 2 detik
+    }
+ 
+    // Animasi CSS untuk notifikasi
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 });
-
+ 
 document.addEventListener('DOMContentLoaded', function () {
     const historyIcon = document.querySelector('.history-icon');
-
+ 
     historyIcon.addEventListener('click', function () {
-
         console.log('History icon clicked');
         // Arahkan ke halaman log_activity.php
         window.location.href = '../log_activity/log_activity.php?from=preview';
     });
 });
-
-
+ 
 // Fungsi untuk menampilkan/menyembunyikan menu
 function toggleAccountMenu() {
     const menu = document.getElementById('account-menu');
     menu.classList.toggle('show');
-    
     // Close menu when clicking outside
     document.addEventListener('click', function(event) {
         const isClickInside = menu.contains(event.target) || 
                             event.target.closest('.account-icon');
-        
         if (!isClickInside && menu.classList.contains('show')) {
             menu.classList.remove('show');
         }
     });
 }
-
+ 
 // Fungsi untuk logout
 function logout() {
     fetch('../login/logout.php') // Buat file logout.php untuk menghapus session
@@ -244,12 +299,12 @@ function logout() {
             console.error('Error:', error);
         });
 }
-
+ 
 // Tutup menu saat mengklik di luar menu
 document.addEventListener('click', function (event) {
     const accountMenu = document.getElementById('account-menu');
     const accountIcon = document.querySelector('.account-icon');
-
+ 
     // Jika yang diklik bukan bagian dari account-icon atau account-menu, sembunyikan menu
     if (!accountIcon.contains(event.target) && !accountMenu.contains(event.target)) {
         accountMenu.classList.remove('show');

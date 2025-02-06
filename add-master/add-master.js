@@ -104,7 +104,7 @@ document.getElementById("addMasterForm").addEventListener("submit", function (ev
         .then(response => response.json()) // Konversi ke JSON
         .then(data => {
             if (data.success) {
-                showNotification("Data berhasil ditambahkan!", true); // Notifikasi sukses
+                showNotification("Data Added Successfully!", true); // Notifikasi sukses
                 document.getElementById("addMasterForm").reset(); // Reset form setelah sukses
             } else {
                 showNotification("Gagal menambahkan data: " + data.message, false); // Notifikasi gagal

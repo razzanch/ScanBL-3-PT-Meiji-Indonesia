@@ -125,6 +125,17 @@ document.addEventListener('DOMContentLoaded', function () {
             // Redirect dengan parameter 'from'
             window.location.href = `log_activity.php?from=${fromPage}`;
         }
+        else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
+            const searchValue = searchField.value.trim();
+            if (searchValue !== '') {
+                // Ambil parameter 'from' dari URL saat ini
+                const urlParams = new URLSearchParams(window.location.search);
+                const fromPage = urlParams.get('from') || 'overview'; // Default ke 'overview' jika tidak ada
+    
+                // Redirect dengan parameter pencarian dan 'from'
+                window.location.href = `log_activity.php?search=${encodeURIComponent(searchValue)}&from=${fromPage}`;
+            }
+        }
     });
 
     searchField.addEventListener('keydown', function (event) {
@@ -175,12 +186,83 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Handle delete success/error messages
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('delete_success')) {
-        alert('Record deleted successfully');
+    if (tableBody) {
+        let rows = tableBody.getElementsByTagName("tr");
+    
+    if(urlParams.get('search')){
+        // Jika hanya ada satu baris dan mengandung teks "Data tidak ditemukan"
+        if (rows.length === 1 && rows[0].textContent.includes("Data tidak ditemukan")) {
+            showNotification("Data not found", false);
+        } else if (rows.length > 0) {
+            showNotification("Data found", true);
+        }
     }
-    if (urlParams.get('delete_error')) {
-        alert('Error deleting record');
     }
+
+    function showNotification(message, isSuccess) {
+        // Buat elemen notifikasi
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+                <span>${message}</span>
+            </div>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 300px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease-out;
+        `;
+    
+        // Tambahkan notifikasi ke body
+        document.body.appendChild(notification);
+    
+        // Hapus notifikasi setelah 2 detik
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-out';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500); // Waktu untuk animasi slideOut
+        }, 2000); // Notifikasi muncul selama 2 detik
+    }
+    
+    // Animasi CSS untuk notifikasi
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 
     // Initial icon state
     updateSearchFieldIcon();
