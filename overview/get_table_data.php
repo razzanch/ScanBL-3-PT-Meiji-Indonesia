@@ -114,6 +114,7 @@ $query = "
 
 $result = $conn->query($query);
 
+
 // Display table data
 if ($result->num_rows > 0) {
     $no = $offset + 1; // Line number starting from offset + 1

@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchField = document.querySelector('.overview-search');
     const tableBody = document.querySelector('table tbody');
     const paginationContainer = document.querySelector('.pagination');
+ 
 
     let isNavbarCollapsed = false;
     let isOriginalLogo = true;
     let isBarcodeScanMode = false;
+
 
     const originalLogoSrc = '../assets/meijiUNMASK.png';
     const alternateLogoSrc = '../assets/circleMeiji.png';
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const rect = searchField.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
 
+
         // Check if barcode icon is clicked (left side)
         if (clickX <= 40) {
             
@@ -120,6 +123,13 @@ document.addEventListener('DOMContentLoaded', function () {
             updateSearchFieldIcon();
             // Tampilkan semua data
             window.location.href = 'overview.php';
+        }
+        else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
+            const searchValue = searchField.value.trim();
+            if (searchValue !== '') {
+                // Redirect dengan parameter pencarian
+                window.location.href = `overview.php?search=${encodeURIComponent(searchValue)}`;
+            }
         }
     });
 
@@ -142,8 +152,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const searchValue = searchField.value.trim();
 
         if (searchValue === '' && !isBarcodeScanMode) {
+            
             // Jika input kosong, tampilkan semua data
             window.location.href = 'overview.php';
+          
         }
     });
 
@@ -171,6 +183,21 @@ if (urlParams.get('delete_success')) {
 if (urlParams.get('delete_error')) {
     showNotification('Error deleting record', false); // Notifikasi gagal
 }
+
+if (tableBody) {
+    let rows = tableBody.getElementsByTagName("tr");
+
+if(urlParams.get('search')){
+    // Jika hanya ada satu baris dan mengandung teks "Data tidak ditemukan"
+    if (rows.length === 1 && rows[0].textContent.includes("Data tidak ditemukan")) {
+        showNotification("Data not found", false);
+    } else if (rows.length > 0) {
+        showNotification("Data found", true);
+    }
+}
+}
+
+
 
 // Fungsi untuk menampilkan notifikasi
 function showNotification(message, isSuccess) {
@@ -293,3 +320,4 @@ document.addEventListener('click', function (event) {
         accountMenu.classList.remove('show');
     }
 });
+

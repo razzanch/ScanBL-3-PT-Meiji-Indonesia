@@ -625,7 +625,7 @@ body, html {
     outline: none;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-size: 20px; 
-    background-image: url('../assets/barcodeblack.png'), url('../assets/blackpreview.png');
+    background-image: url('../assets/account.png'), url('../assets/blackpreview.png');
     background-repeat: no-repeat, no-repeat;
     background-position: left 10px center, right 10px center;
     background-size: 30px 30px, 25px 25px;
@@ -634,7 +634,7 @@ body, html {
 }
 
 .overview-search.has-text {
-    background-image: url('../assets/barcodeblack.png'), url('../assets/X.png');
+    background-image: url('../assets/account.png'), url('../assets/X.png');
     cursor: pointer;
 }
 

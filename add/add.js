@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const productSelect = document.getElementById('product');
     const lotNumberInput = document.getElementById('lot-number');
@@ -98,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentCounter = 0; // Menyimpan nilai counter yang ada
     let timeoutId = null; // Untuk menyimpan setTimeout ID
+    let notifmm = true;
 
     // Fungsi untuk mendapatkan waktu saat ini dalam format 'YYYY-MM-DD HH:MM:SS'
     function getCurrentDateTime() {
@@ -182,13 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Cek saat pengguna ingin mengisi No. Lot
-    lotNumberInput.addEventListener('focus', function () {
-        if (!productSelect.value) {
-            alert("Silakan pilih produk terlebih dahulu.");
-            lotNumberInput.blur();
-        }
-    });
+
 
     // Event listener untuk tombol Enter pada No Lot
     lotNumberInput.addEventListener('keydown', function (event) {
@@ -210,13 +207,73 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchLastCounter();
     });
 
-    // Cek saat pengguna ingin mengisi System Counter
-    systemCounterInput.addEventListener('focus', function () {
-        if (!lotNumberInput.value) {
-            alert("Silakan isi No Lot terlebih dahulu.");
+    // Notifikasi untuk No Lot ketika belum pilih Product
+    document.getElementById("lot-number").addEventListener("click", function() {
+        let selectedProduct = document.getElementById("product").value;
+        
+        if (!selectedProduct) {
+            showNotification("Please select the product first!", "error");
+            lotNumberInput.blur();
+        }
+    });
+
+    // Notifikasi untuk System Counter ketika belum mengisi No Lot
+    document.getElementById("system-counter").addEventListener("click", function() {
+        let lotNumberInput = document.getElementById("lot-number").value;
+        
+        if (!lotNumberInput) {
+            showNotification("Please fill in the Lot Number first!", "error");
             systemCounterInput.blur();
         }
     });
+
+    // Function to show notification
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        const iconSrc = '../assets/icon-error.png';
+        const bgColor = '#f44336';
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${iconSrc}" alt="error" style="width: 24px; height: 24px;">
+                <span>${message}</span>
+            </div>
+        `;
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: ${bgColor};
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 300px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        `;
+
+        document.body.appendChild(notification);
+
+        // Fade in
+        setTimeout(() => {
+            notification.style.opacity = '1';
+        }, 100);
+
+        // Remove notification after 2 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2000);
+    }
 
     // Tambahkan elemen untuk animasi loading di dalam input
     loadingSpinner.classList.add('loading-spinner');
@@ -254,6 +311,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             timeoutId = setTimeout(() => saveCounterToDatabase(), 1500); // Simpan setelah 1,5 detik
         }
+        else{
+
+            clearTimeout(timeoutId); // Hapus timeout sebelumnya
+
+            timeoutId = setTimeout(() => showNotification('Mismatch',false), 1500); // Simpan setelah 1,5 detik            
+        }
+        
     });
 
     // Fungsi untuk mengirim data ke database setelah 1 detik
@@ -262,12 +326,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const lotNumber = lotNumberInput.value;
         const date = getCurrentDateTime();
 
-        if (!product || !lotNumber) {
-            alert('Harap pilih produk dan isi No Lot terlebih dahulu!');
-            loadingSpinner.style.display = 'none'; // Sembunyikan animasi jika ada kesalahan
-            return;
-        }
-
+    
         const formData = new URLSearchParams();
         formData.append('product', product);
         formData.append('lot_number', lotNumber);

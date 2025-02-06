@@ -282,8 +282,59 @@ document.getElementById('deleteForm').onsubmit = function(e) {
     if (actualProduct === confirmProduct) {
         this.submit();
     } else {
-        alert('Product name does not match. Please try again.');
+        showNotification('Product name does not match. Please try again.','error');
     }
+}
+
+let notificationContainer = document.createElement('div');
+    notificationContainer.id = 'notification-container';
+    document.body.appendChild(notificationContainer);
+
+function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        const iconSrc = type === 'success' ? '../assets/icon-success.png' : '../assets/icon-error.png';
+        const bgColor = type === 'success' ? '#4CAF50' : '#f44336';
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${iconSrc}" alt="${type}" style="width: 24px; height: 24px;">
+                <span>${message}</span>
+            </div>
+        `;
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: ${bgColor};
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 300px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        `;
+
+        notificationContainer.appendChild(notification);
+
+         // Fade in
+         setTimeout(() => {
+            notification.style.opacity = '1';
+        }, 100);
+
+        // Remove notification after 2 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2000);
 }
 </script>
 
