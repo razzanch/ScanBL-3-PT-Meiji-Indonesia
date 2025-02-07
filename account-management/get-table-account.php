@@ -245,6 +245,121 @@ $result = $conn->query($query);
 <!-- Modal JavaScript -->
 <script>
 
+    // Regex untuk karakter berbahaya
+const dangerousPattern = /[<>\"'\/\\;`\-&=]/;
+
+
+// Edit Form Validation
+const editForm = document.getElementById("editForm");
+if (editForm) {
+    editForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        const realName = document.getElementById("edit_real_name").value;
+        const username = document.getElementById("edit_username").value;
+
+        if (!realName || !username) {
+            showNotification("Please fill in all fields.", false);
+            return;
+        }
+
+        if (dangerousPattern.test(realName) || dangerousPattern.test(username)) {
+            showNotification("Invalid characters detected in Real Name or Username.(<, >, &, \", ', /, =)", false);
+            return;
+        }
+
+        editForm.submit(); // Kirim form jika valid
+    });
+}
+
+// Delete Form Validation
+const deleteForm = document.getElementById("deleteForm");
+if (deleteForm) {
+    deleteForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        const confirmUsername = document.getElementById("confirm_username").value;
+
+        if (!confirmUsername) {
+            showNotification("Please enter the username to confirm deletion.", false);
+            return;
+        }
+
+        if (dangerousPattern.test(confirmUsername)) {
+            showNotification("Invalid characters detected in Username confirmation.(<, >, &, \", ', /, =)",false);
+            return;
+        }
+
+        deleteForm.submit(); // Kirim form jika valid
+    });
+}
+
+function showNotification(message, isSuccess) {
+    // Buat elemen notifikasi
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+            <span>${message}</span>
+        </div>
+    `;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+        color: white;
+        padding: 15px;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        min-width: 300px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        animation: slideIn 0.5s ease-out;
+    `;
+
+    // Tambahkan notifikasi ke body
+    document.body.appendChild(notification);
+
+    // Hapus notifikasi setelah 2 detik
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 500); // Waktu untuk animasi slideOut
+    }, 2000); // Notifikasi muncul selama 2 detik
+}
+
+// Animasi CSS untuk notifikasi
+const style = document.createElement('style');
+style.innerHTML = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+
 function scrollToTable() {
         const tableElement = document.querySelector('table');
         if (tableElement) {

@@ -175,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     
                     rssCodeInput.value = data.rss_code || '';
                     jamCodeInput.value = data.jam_code || '-';
+                    lotNumberInput.focus();
 
                     dateInput.value = getCurrentDateTime(); // Set date otomatis setiap kali produk dipilih
                 })
@@ -187,20 +188,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    // Event listener untuk tombol Enter pada No Lot
     lotNumberInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault(); // Mencegah perilaku default (misalnya, submit form)
             systemCounterInput.focus(); // Pindahkan fokus ke System Counter
+
+            if (lotNumberInput.value==="") {
+                showNotification("Please fill and 'Enter' in the Lot Number first!", "error");
+                systemCounterInput.blur();
+            }
+
+            if (this.value.trim() !== "") {
+            fetchLastCounter();
+        }
         }
     });
 
-    // Fetch counter immediately when lot number is being typed
-    lotNumberInput.addEventListener('input', function() {
-        if (this.value.trim() !== '') {
-            fetchLastCounter();
-        }
-    });
+   // Fetch counter immediately when lot number is being typed
+lotNumberInput.addEventListener("input", function () {
+    function validateInput(input) {
+        const forbiddenChars = /[<>\"'&/=]/g;
+        return !forbiddenChars.test(input);
+    }
+
+    function isNumeric(input) {
+        return /^\d+$/.test(input); // Hanya angka yang diperbolehkan
+    }
+
+    if(lotNumberInput.value !== ""){
+
+    // Validasi input
+    if (!validateInput(this.value)) {
+        showNotification("Counters must not contain prohibited characters! (<, >, &, \", ', /, =)", false);
+        lotNumberInput.value = "";
+        return;
+    }
+
+    if (!isNumeric(this.value)) {
+        showNotification("Lot number must contain only numbers!", false);
+        lotNumberInput.value = "";
+        return;
+    }
+}
+
+    if (this.value.trim() !== "") {
+        fetchLastCounter();
+    }
+});
+
 
     // Keep the existing change event as backup
     lotNumberInput.addEventListener('change', function() {
@@ -315,7 +350,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             clearTimeout(timeoutId); // Hapus timeout sebelumnya
 
-            timeoutId = setTimeout(() => showNotification('Mismatch',false), 1500); // Simpan setelah 1,5 detik            
+            timeoutId = setTimeout(() => {
+                showNotification('Mismatch RSS-Code/JAM-Code', false);
+                systemCounterInput.value = ''; // Kosongkan input
+            }, 1500);
+                       
         }
         
     });
@@ -325,13 +364,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const product = productSelect.value;
         const lotNumber = lotNumberInput.value;
         const date = getCurrentDateTime();
-
     
         const formData = new URLSearchParams();
         formData.append('product', product);
         formData.append('lot_number', lotNumber);
         formData.append('date', date);
         formData.append('counter', currentCounter);
+
 
         fetch('post_data.php', {
             method: 'POST',

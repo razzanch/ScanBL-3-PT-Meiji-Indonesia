@@ -230,11 +230,13 @@ $row = $result->fetch_assoc();
             <div class="custom-form-group">
                 <label for="current_password">Current Password:</label>
                 <input type="password" id="current_password" name="current_password" required>
+                <img src="../assets/whiteshow.png" alt="Show Password" class="password-toggle" id="passwordToggle1">
             </div>
             
             <div class="custom-form-group">
                 <label for="new_password">New Password:</label>
                 <input type="password" id="new_password" name="new_password" required>
+                <img src="../assets/whiteshow.png" alt="Show Password" class="password-toggle" id="passwordToggle2">
                 <div class="custom-text-note-container">
                     Note: This action is permanent. Please input your new password carefully!
                 </div>
@@ -275,5 +277,141 @@ $row = $result->fetch_assoc();
     
 
     <script src="information-account.js"></script>
+    <script>
+        document.getElementById("editForm").addEventListener("submit", function (event) {
+    const realNameInput = document.getElementById("edit_real_name");
+
+    function validateInput(input) {
+        const forbiddenChars = /[<>\"'&/=]/g;
+        return !forbiddenChars.test(input);
+    }
+
+    if (!validateInput(realNameInput.value)) {
+        showNotification("Real Name contains prohibited characters! (<, >, &, \", ', /, =)", false);
+        event.preventDefault(); // Mencegah pengiriman form
+        return;
+    }
+});
+
+document.getElementById("changePasswordForm").addEventListener("submit", function (event) {
+    const currentPasswordInput = document.getElementById("current_password");
+    const newPasswordInput = document.getElementById("new_password");
+
+    function validateInput(input) {
+        const forbiddenChars = /[<>\"'&/=]/g;
+        return !forbiddenChars.test(input);
+    }
+
+    function validatePassword(password) {
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
+    }
+
+    if (!validateInput(currentPasswordInput.value) || !validateInput(newPasswordInput.value)) {
+        showNotification("Passwords must not contain prohibited characters! (<, >, &, \", ', /, =)", false);
+        event.preventDefault();
+        return;
+    }
+});
+
+function showNotification(message, isSuccess) {
+    // Buat elemen notifikasi
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+            <span>${message}</span>
+        </div>
+    `;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+        color: white;
+        padding: 15px;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        min-width: 300px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        animation: slideIn 0.5s ease-out;
+    `;
+
+    // Tambahkan notifikasi ke body
+    document.body.appendChild(notification);
+
+    // Hapus notifikasi setelah 2 detik
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 500); // Waktu untuk animasi slideOut
+    }, 2000); // Notifikasi muncul selama 2 detik
+}
+
+// Animasi CSS untuk notifikasi
+const style = document.createElement('style');
+style.innerHTML = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const passwordToggle1 = document.getElementById("passwordToggle1");
+    const passwordToggle2 = document.getElementById("passwordToggle2");
+
+    if (passwordToggle1) {
+        const passwordInput1 = document.getElementById("current_password"); // ✅ Pastikan elemen ditemukan
+    
+        passwordToggle1.addEventListener("click", function() {
+            if (passwordInput1.type === "password") {
+                passwordInput1.type = "text";
+                passwordToggle1.src = "../assets/whitehide.png";
+            } else {
+                passwordInput1.type = "password";
+                passwordToggle1.src = "../assets/whiteshow.png";
+            }
+        });
+    }
+
+    if (passwordToggle2) {
+        const passwordInput2 = document.getElementById("new_password"); // ✅ Pastikan elemen ditemukan
+    
+        passwordToggle2.addEventListener("click", function() {
+            if (passwordInput2.type === "password") {
+                passwordInput2.type = "text";
+                passwordToggle2.src = "../assets/whitehide.png";
+            } else {
+                passwordInput2.type = "password";
+                passwordToggle2.src = "../assets/whiteshow.png";
+            }
+        });
+    }
+});
+
+    </script>
 </body>
 </html>

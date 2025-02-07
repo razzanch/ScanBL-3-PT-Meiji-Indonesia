@@ -21,7 +21,7 @@ $jam_code = isset($_POST['jam-code']) ? trim($_POST['jam-code']) : NULL; // Bisa
 
 // Validasi input
 if (empty($product) || empty($rss_code)) {
-    echo json_encode(["success" => false, "message" => "Harap isi semua field yang diperlukan."]);
+    echo json_encode(["success" => false, "message" => "Please fill all field."]);
     exit;
 }
 
@@ -33,7 +33,7 @@ $check_stmt->execute();
 $check_stmt->store_result();
 
 if ($check_stmt->num_rows > 0) {
-    echo json_encode(["success" => false, "message" => "Kombinasi produk dan RSS Code sudah ada. Gunakan data yang berbeda."]);
+    echo json_encode(["success" => false, "message" => "The Combination of rss-code/product is already used."]);
     $check_stmt->close();
     $conn->close();
     exit;
@@ -48,7 +48,7 @@ $stmt->bind_param("sss", $product, $rss_code, $jam_code);
 if ($stmt->execute()) {
     echo json_encode(["success" => true]);
 } else {
-    echo json_encode(["success" => false, "message" => "Gagal menambahkan data: " . $conn->error]);
+    echo json_encode(["success" => false, "message" => "Failed to add data: " . $conn->error]);
 }
 
 // Tutup koneksi database

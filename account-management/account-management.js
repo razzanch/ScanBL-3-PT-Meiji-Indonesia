@@ -206,6 +206,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
                 const searchValue = searchField.value.trim();
+                function validateInput(input) {
+                    const forbiddenChars = /[<>\"'&/=]/g;
+                    return !forbiddenChars.test(input);
+                }
+                            event.preventDefault(); // Mencegah aksi default
+            
+                    if (!validateInput(searchValue)) {
+                        showNotification("Search query contains prohibited characters! (<, >, &, \", ', /, =)", false);
+                        searchField.value = ""; // Kosongkan input jika mengandung karakter terlarang
+                        return;
+                    }
                 if (searchValue !== '') {
                     localStorage.setItem('shouldScrollToTable', 'true');
                     window.location.href = `account-management.php?search=${encodeURIComponent(searchValue)}`;
@@ -218,7 +229,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const searchValue = searchField.value.trim();
 
             if (event.key === 'Enter' && !isBarcodeScanMode) {
-                event.preventDefault();
+
+                const searchValue = searchField.value.trim();
+
+    function validateInput(input) {
+        const forbiddenChars = /[<>\"'&/=]/g;
+        return !forbiddenChars.test(input);
+    }
+                event.preventDefault(); // Mencegah aksi default
+
+        if (!validateInput(searchValue)) {
+            showNotification("Search query contains prohibited characters! (<, >, &, \", ', /, =)", false);
+            searchField.value = ""; // Kosongkan input jika mengandung karakter terlarang
+            return;
+        }
                 if (searchValue !== '') {
                     localStorage.setItem('shouldScrollToTable', 'true');
                     window.location.href = `account-management.php?search=${encodeURIComponent(searchValue)}`;
@@ -251,6 +275,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 showNotification("Please fill in all fields.", "error");
                 return;
             }
+            
+            function sanitizeInput(input) {
+                const forbiddenChars = /[<>&"'=/]/g;
+                if (forbiddenChars.test(input)) {
+                    return null;
+                }
+                return input;
+            }
+
+            // Validasi input
+        if (!sanitizeInput(nameInput.value) || !sanitizeInput(usernameInput.value) || !sanitizeInput(passwordInput.value)) {
+            showNotification("Any Field must not contain prohibited characters! (<, >, &, \", ', /, =)", "error");
+            return;
+        }
     
             const formData = new FormData(addAccountForm);
             
@@ -281,10 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
         passwordToggle.addEventListener("click", function() {
             if (passwordInput.type === "password") {
                 passwordInput.type = "text";
-                passwordToggle.src = "../assets/hide-pw.png";
+                passwordToggle.src = "../assets/show-pw.png";
             } else {
                 passwordInput.type = "password";
-                passwordToggle.src = "../assets/show-pw.png";
+                passwordToggle.src = "../assets/hide-pw.png";
             }
         });
     }
@@ -295,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 if (urlParams.has('add_success')) {
     showNotification('Account successfully added');
-} else if (urlParams.has('update_error')) {
+} else if (urlParams.has('add_error')) {
     showNotification('Username is already used by other Account', 'error');
 }
 

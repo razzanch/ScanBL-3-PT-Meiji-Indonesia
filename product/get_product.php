@@ -237,6 +237,101 @@ $result = $conn->query($query);
 
 <!-- Modal JavaScript -->
 <script>
+
+    // Regex untuk karakter berbahaya
+    const dangerousPattern = /[<>"'\/\\;`&=]/;
+
+
+// Edit Form Validation
+const editForm = document.getElementById("editForm");
+if (editForm) {
+    editForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        const realName = document.getElementById("edit_barcode").value;
+        const username = document.getElementById("edit_product").value;
+        const jamcode = document.getElementById("edit_jam_code").value;
+
+        if (!realName || !username || !jamcode) {
+            showNotification("Please fill in all fields.", false);
+            return;
+        }
+
+        if (dangerousPattern.test(realName) || dangerousPattern.test(username) || dangerousPattern.test(jamcode)) {
+            showNotification("Invalid characters detected in Real Name or Username.(<, >, &, \", ', /, =)", false);
+            return;
+        }
+
+        editForm.submit(); // Kirim form jika valid
+    });
+}
+
+
+function showNotification(message, isSuccess) {
+    // Buat elemen notifikasi
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="../assets/${isSuccess ? 'icon-success.png' : 'icon-error.png'}" alt="${isSuccess ? 'Success' : 'Error'}" style="width: 24px; height: 24px;">
+            <span>${message}</span>
+        </div>
+    `;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: ${isSuccess ? '#4CAF50' : '#F44336'};
+        color: white;
+        padding: 15px;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        min-width: 300px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        animation: slideIn 0.5s ease-out;
+    `;
+
+    // Tambahkan notifikasi ke body
+    document.body.appendChild(notification);
+
+    // Hapus notifikasi setelah 2 detik
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 500); // Waktu untuk animasi slideOut
+    }, 2000); // Notifikasi muncul selama 2 detik
+}
+
+// Animasi CSS untuk notifikasi
+const style = document.createElement('style');
+style.innerHTML = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
 function openEditModal(data) {
     document.getElementById('edit_id_master').value = data.id;
     document.getElementById('edit_barcode').value = data.barcode;
@@ -278,6 +373,11 @@ document.getElementById('deleteForm').onsubmit = function(e) {
     e.preventDefault();
     var actualProduct = document.getElementById('actual_product_name').value;
     var confirmProduct = document.getElementById('confirm_product').value;
+
+    if (dangerousPattern.test(confirmProduct)||dangerousPattern.test(actualProduct)) {
+            showNotification("Invalid characters detected in Username confirmation.(<, >, &, \", ', /, =)",false);
+            return;
+        }
     
     if (actualProduct === confirmProduct) {
         this.submit();

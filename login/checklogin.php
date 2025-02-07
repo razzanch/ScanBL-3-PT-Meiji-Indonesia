@@ -43,7 +43,7 @@ if ($user && password_verify($password, $user['password'])) {
 
     echo json_encode(['success' => true, 'user' => $user['username']]);
 } else {
-    echo json_encode(['error' => 'Username atau Password salah!']);
+    echo json_encode(['error' => 'Wrong Password/Username!']);
 }
 
 // Tutup koneksi

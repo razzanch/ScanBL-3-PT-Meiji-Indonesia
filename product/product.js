@@ -173,6 +173,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
             const searchValue = searchField.value.trim();
+            function validateInput(input) {
+                const forbiddenChars = /[<>\"'&/=]/g;
+                return !forbiddenChars.test(input);
+            }
+                        event.preventDefault(); // Mencegah aksi default
+        
+                if (!validateInput(searchValue)) {
+                    showNotification("Search query contains prohibited characters! (<, >, &, \", ', /, =)", false);
+                    searchField.value = ""; // Kosongkan input jika mengandung karakter terlarang
+                    return;
+                }
             if (searchValue !== '') {
                 // Redirect dengan parameter pencarian
                 window.location.href = `product.php?search=${encodeURIComponent(searchValue)}`;
@@ -180,13 +191,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    
+
     // Event listener untuk pencarian dengan tombol Enter
     searchField.addEventListener('keydown', function (event) {
         const searchValue = searchField.value.trim();
 
+        function validateInput(input) {
+            const forbiddenChars = /[<>\"'&/=]/g;
+            return !forbiddenChars.test(input);
+        }
+    
         // Deteksi tombol Enter
-        if (event.key === 'Enter' && !isBarcodeScanMode) {
+        if (event.key === "Enter" && !isBarcodeScanMode) {
             event.preventDefault(); // Mencegah aksi default
+    
+            if (!validateInput(searchValue)) {
+                showNotification("Search query contains prohibited characters! (<, >, &, \", ', /, =)", false);
+                searchField.value = ""; // Kosongkan input jika mengandung karakter terlarang
+                return;
+            }
             if (searchValue !== '') {
                 // Redirect dengan parameter pencarian
                 window.location.href = `product.php?search=${encodeURIComponent(searchValue)}`;
@@ -310,5 +334,12 @@ document.addEventListener('click', function (event) {
     // Jika yang diklik bukan bagian dari account-icon atau account-menu, sembunyikan menu
     if (!accountIcon.contains(event.target) && !accountMenu.contains(event.target)) {
         accountMenu.classList.remove('show');
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const searchField = document.querySelector(".overview-search");
+    if (searchField) {
+        searchField.focus();
     }
 });

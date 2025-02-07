@@ -58,7 +58,7 @@ if (isset($_SESSION['user_id'])) {
                             <div class="password-container">
                             <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter Password">
-                    <img src="../assets/show-pw.png" alt="Show Password" class="password-toggle" id="passwordToggle">
+                    <img src="../assets/hide-pw.png" alt="Show Password" class="password-toggle" id="passwordToggle">
                 </div>
                             </div>
                             <button type="submit" class="signin-button">Sign in</button>

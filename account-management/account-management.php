@@ -141,7 +141,7 @@ if ($role !== "Admin") {
                 <label for="password">Password</label>
                 <div class="password-container">
                     <input type="password" id="password" name="password" placeholder="Enter Password">
-                    <img src="../assets/show-pw.png" alt="Show Password" class="password-toggle" id="passwordToggle">
+                    <img src="../assets/hide-pw.png" alt="Show Password" class="password-toggle" id="passwordToggle">
                 </div>
             </div>
             <div class="form-row">
