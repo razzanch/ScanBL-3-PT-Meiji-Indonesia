@@ -26,14 +26,14 @@ if (empty($product) || empty($rss_code)) {
 }
 
 // Cek apakah kombinasi product dan rss_code sudah ada di database
-$check_sql = "SELECT id_master FROM add_master WHERE product = ? OR rss_code = ?";
+$check_sql = "SELECT id_master FROM add_master WHERE product = ? OR rss_code = ? OR jam_code";
 $check_stmt = $conn->prepare($check_sql);
 $check_stmt->bind_param("ss", $product, $rss_code);
 $check_stmt->execute();
 $check_stmt->store_result();
 
 if ($check_stmt->num_rows > 0) {
-    echo json_encode(["success" => false, "message" => "Kombinasi produk dan RSS Code sudah ada. Gunakan data yang berbeda."]);
+    echo json_encode(["success" => false, "message" => "Kombinasi produk & RSS Code sudah ada. Gunakan data yang berbeda."]);
     $check_stmt->close();
     $conn->close();
     exit;

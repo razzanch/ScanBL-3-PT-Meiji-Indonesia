@@ -123,6 +123,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         else if (clickX >= rect.width - 40 && !searchField.classList.contains('has-text')) {
             const searchValue = searchField.value.trim();
+            function validateInput(input) {
+                const forbiddenChars = /[<>\"'&/=]/g;
+                return !forbiddenChars.test(input);
+            }
+                        event.preventDefault(); // Mencegah aksi default
+        
+                if (!validateInput(searchValue)) {
+                    showNotification("Search query contains prohibited characters! (<, >, &, \", ', /, =)", false);
+                    searchField.value = ""; // Kosongkan input jika mengandung karakter terlarang
+                    return;
+                }
             if (searchValue !== '') {
                 // Redirect dengan parameter pencarian
                 window.location.href = `overview.php?search=${encodeURIComponent(searchValue)}`;
@@ -134,9 +145,21 @@ document.addEventListener('DOMContentLoaded', function () {
     searchField.addEventListener('keydown', function (event) {
         const searchValue = searchField.value.trim();
 
-        // Deteksi tombol Enter
         if (event.key === 'Enter' && !isBarcodeScanMode) {
+
+            const searchValue = searchField.value.trim();
+
+function validateInput(input) {
+    const forbiddenChars = /[<>\"'&/=]/g;
+    return !forbiddenChars.test(input);
+}
             event.preventDefault(); // Mencegah aksi default
+
+    if (!validateInput(searchValue)) {
+        showNotification("Search query contains prohibited characters! (<, >, &, \", ', /, =)", false);
+        searchField.value = ""; // Kosongkan input jika mengandung karakter terlarang
+        return;
+    }// Mencegah aksi default
             if (searchValue !== '') {
                 // Redirect dengan parameter pencarian
                 window.location.href = `overview.php?search=${encodeURIComponent(searchValue)}`;

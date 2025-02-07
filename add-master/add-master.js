@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Event listener untuk tombol Enter pada Product
     const productInput = document.getElementById('product');
     const rssCodeInput = document.getElementById('rss-code');
+    const jamCodeInput = document.getElementById('jam-code');
 
     productInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
@@ -90,31 +91,49 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Submit form menggunakan Fetch API
-document.getElementById("addMasterForm").addEventListener("submit", function (event) {
-    event.preventDefault(); // Mencegah form reload halaman
 
-    // Ambil data dari form
-    const formData = new FormData(this);
-
-    // Kirim data ke PHP menggunakan Fetch API
-    fetch("add-master-data.php", {
-        method: "POST",
-        body: formData
-    })
-        .then(response => response.json()) // Konversi ke JSON
-        .then(data => {
-            if (data.success) {
-                showNotification("Data Added Successfully!", true); // Notifikasi sukses
-                document.getElementById("addMasterForm").reset(); // Reset form setelah sukses
-            } else {
-                showNotification("Gagal menambahkan data: " + data.message, false); // Notifikasi gagal
-            }
+    // Submit form menggunakan Fetch API
+    document.getElementById("addMasterForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Mencegah form reload halaman
+    
+        // Fungsi validasi input
+        function validateInput(input) {
+            const forbiddenChars = /[<>\"'&/=]/g;
+            return !forbiddenChars.test(input);
+        }
+    
+        // Ambil data dari form
+        const formData = new FormData(this);
+    
+        // Validasi setiap field sebelum dikirim
+        if (
+            !validateInput(productInput.value) ||
+            !validateInput(rssCodeInput.value) ||
+            !validateInput(jamCodeInput.value)
+        ) {
+            showNotification("All Field must not contain prohibited characters! (<, >, &, \", ', /, =)", false);
+            return;
+        }
+    
+        // Kirim data ke PHP menggunakan Fetch API
+        fetch("add-master-data.php", {
+            method: "POST",
+            body: formData,
         })
-        .catch(error => {
-            console.error("Error:", error);
-            showNotification("Terjadi kesalahan dalam pengiriman data.", false); // Notifikasi error
-        });
-});
+            .then((response) => response.json()) // Konversi ke JSON
+            .then((data) => {
+                if (data.success) {
+                    showNotification("Data Added Successfully!", true); // Notifikasi sukses
+                    document.getElementById("addMasterForm").reset(); // Reset form setelah sukses
+                } else {
+                    showNotification("Failed to add data: " + data.message, false); // Notifikasi gagal
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                showNotification("Terjadi kesalahan dalam pengiriman data.", false); // Notifikasi error
+            });
+    });
 
 // Fungsi untuk menampilkan notifikasi
 function showNotification(message, isSuccess) {

@@ -2,11 +2,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const loginForm = document.querySelector("form");
     const passwordToggle = document.getElementById("passwordToggle");
 
+    function sanitizeInput(input) {
+        const forbiddenChars = /[<>&"'=/]/g;
+        if (forbiddenChars.test(input)) {
+            return null;
+        }
+        return input;
+    }
+
     loginForm.addEventListener("submit", function (event) {
         event.preventDefault(); // Mencegah reload halaman
 
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+        let username = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+
+        // Validasi input
+        if (!sanitizeInput(username) || !sanitizeInput(password)) {
+            showNotification("Username/Password must not contain prohibited characters! (<, >, &, \", ', /, =)", "error");
+            return;
+        }
 
         // Kirim data ke checklogin.php menggunakan fetch API
         fetch("checklogin.php", {
@@ -40,14 +54,13 @@ document.addEventListener("DOMContentLoaded", function () {
         passwordToggle.addEventListener("click", function() {
             if (passwordInput.type === "password") {
                 passwordInput.type = "text";
-                passwordToggle.src = "../assets/hide-pw.png";
+                passwordToggle.src = "../assets/show-pw.png";
             } else {
                 passwordInput.type = "password";
-                passwordToggle.src = "../assets/show-pw.png";
+                passwordToggle.src = "../assets/hide-pw.png";
             }
         });
     }
-    
 });
 
 // Fungsi menampilkan notifikasi

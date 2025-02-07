@@ -167,9 +167,10 @@ document.addEventListener("DOMContentLoaded", function () {
         let selectedProduct = productDropdown.value;
         let selectedNoLot = noLotDropdown.value;
         let counter = counterField.value;
+        let nolot = lotNumberField.value;
 
-        if (!selectedProduct || !selectedNoLot || !counter) {
-            showNotification('Please select Product, No. Lot, and ensure Counter is filled.', false);
+        if (nolot==="") {
+            showNotification('Press Button "Process" to unlock this field.', false);
             systemCounterInput.blur();
         }
     });
@@ -419,7 +420,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         clearTimeout(timeoutId); // Hapus timeout sebelumnya
 
-        timeoutId = setTimeout(() => showNotification('Mismatch',false), 1500); // Simpan setelah 1,5 detik
+        timeoutId = setTimeout(() => {
+            showNotification('Mismatch RSS-Code/JAM-Code', false);
+            systemCounterInput.value = ''; // Kosongkan input
+        }, 1500);
         }
     });
 

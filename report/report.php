@@ -141,18 +141,18 @@ function exportToExcel() {
     const productName = document.querySelector('.report-title p:nth-child(2)').textContent.split(': ')[1].trim();
     const lotNumber = document.querySelector('.report-title p:nth-child(3)').textContent.split(': ')[1].trim();
     const printDate = document.querySelector('.report-title p:nth-child(4)').textContent.split(': ')[1].trim().replace(/:/g, '-');
-
+    
     // Format nama file
-    const fileName = `Product Report - ${productName} (${lotNumber}) - ${printDate}.xlsx`;
-
-    // Create a workbook and worksheet
+    const fileName = `Product Report - ${productName} - No. Lot ${lotNumber} - ${printDate}.xlsx`;
+    
+    // Buat workbook dan worksheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.table_to_sheet(table, {
-        cellDates: true,  // Important: preserve dates
-        dateNF: 'yyyy-mm-dd hh:mm:ss'  // Specify date format
+        cellDates: true,
+        dateNF: 'yyyy-mm-dd hh:mm:ss'
     });
-
-    // Prepare header information
+    
+    // Persiapkan header informasi
     const headerRows = [
         ['Meiji Product Report'],
         [`Product: ${productName}`],
@@ -160,16 +160,124 @@ function exportToExcel() {
         [`Print Date: ${printDate}`],
         [] // Empty row for spacing
     ];
-
-    // Combine header rows with existing worksheet data
-    const finalWs = XLSX.utils.aoa_to_sheet(headerRows.concat(XLSX.utils.sheet_to_json(ws, {header: 1, cellDates: true})));
     
-    // Add the worksheet to the workbook
+    // Convert worksheet data ke JSON array
+    const data = XLSX.utils.sheet_to_json(ws, {header: 1, cellDates: true});
+    
+    // Gabungkan header dengan data tabel
+    const finalWs = XLSX.utils.aoa_to_sheet(headerRows.concat(data));
+    
+    // Dapatkan range tabel untuk formatting
+    const tableRange = XLSX.utils.decode_range(finalWs['!ref']);
+    const tableStart = headerRows.length;
+    
+    // Tambahkan properti table untuk mengaktifkan fitur filter
+    finalWs['!autofilter'] = {
+        ref: XLSX.utils.encode_range({
+            s: {r: tableStart, c: 0},
+            e: {r: tableRange.e.r, c: tableRange.e.c}
+        })
+    };
+    
+    // Style definitions - menggunakan warna default Excel Table Style Medium 9
+    const headerStyle = {
+        fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: {rgb: "5B9BD5"} // Biru Excel default
+        },
+        font: {
+            name: 'Calibri',
+            color: {rgb: "FFFFFF"},
+            bold: true,
+            sz: 11
+        },
+        border: {
+            top: {style: 'thin', color: {rgb: "5B9BD5"}},
+            bottom: {style: 'thin', color: {rgb: "5B9BD5"}},
+            left: {style: 'thin', color: {rgb: "5B9BD5"}},
+            right: {style: 'thin', color: {rgb: "5B9BD5"}}
+        },
+        alignment: {
+            horizontal: 'center',
+            vertical: 'center'
+        }
+    };
+    
+    const dataStyle = {
+        font: {
+            name: 'Calibri',
+            sz: 11
+        },
+        border: {
+            top: {style: 'thin', color: {rgb: "D3D3D3"}},
+            bottom: {style: 'thin', color: {rgb: "D3D3D3"}},
+            left: {style: 'thin', color: {rgb: "D3D3D3"}},
+            right: {style: 'thin', color: {rgb: "D3D3D3"}}
+        }
+    };
+    
+    const alternateRowStyle = {
+        fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: {rgb: "DEEBF7"} // Biru muda Excel default
+        },
+        font: {
+            name: 'Calibri',
+            sz: 11
+        },
+        border: {
+            top: {style: 'thin', color: {rgb: "D3D3D3"}},
+            bottom: {style: 'thin', color: {rgb: "D3D3D3"}},
+            left: {style: 'thin', color: {rgb: "D3D3D3"}},
+            right: {style: 'thin', color: {rgb: "D3D3D3"}}
+        }
+    };
+    
+    // Format setiap sel dalam tabel
+    for (let R = tableStart; R <= tableRange.e.r; ++R) {
+        for (let C = 0; C <= tableRange.e.c; ++C) {
+            const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+            
+            // Pastikan sel ada sebelum menambahkan style
+            if (!finalWs[cellRef]) {
+                finalWs[cellRef] = { v: '', t: 's' };
+            }
+            
+            // Tambahkan style sesuai posisi
+            if (R === tableStart) {
+                finalWs[cellRef].s = headerStyle;
+            } else {
+                finalWs[cellRef].s = (R - tableStart) % 2 === 0 ? dataStyle : alternateRowStyle;
+            }
+            
+            // Format khusus untuk kolom tertentu
+            if (C === 1) { // Barcode
+                finalWs[cellRef].t = 's';
+            } else if (C === 3) { // JamCode
+                finalWs[cellRef].t = 's';
+            } else if (C === 4) { // DateTime
+                if (finalWs[cellRef].v instanceof Date) {
+                    finalWs[cellRef].z = 'yyyy-mm-dd hh:mm:ss';
+                }
+            }
+        }
+    }
+    
+    // Atur lebar kolom
+    const columnWidths = Array(tableRange.e.c + 1).fill({ wch: 20 });
+    finalWs['!cols'] = columnWidths;
+    
+    // Tambahkan worksheet ke workbook
     XLSX.utils.book_append_sheet(wb, finalWs, 'Product Report');
     
-    // Save the file
+    // Simpan file
     XLSX.writeFile(wb, fileName);
 }
+
+
+
 
 function exportToPDF() {
     const { jsPDF } = window.jspdf;
@@ -183,7 +291,7 @@ function exportToPDF() {
     const productName = document.querySelector('.report-title p:nth-child(2)').textContent.split(': ')[1].trim();
     const lotNumber = document.querySelector('.report-title p:nth-child(3)').textContent.split(': ')[1].trim();
     const printDate = document.querySelector('.report-title p:nth-child(4)').textContent.split(': ')[1].trim();
-    const fileName = `Product Report - ${productName} (${lotNumber}) - ${printDate}.pdf`;
+    const fileName = `Product Report - ${productName} - No. Lot ${lotNumber} - ${printDate}.pdf`;
 
     // Set font
     doc.setFont('times', 'normal');

@@ -458,8 +458,11 @@ body, html {
     flex-direction: column;
 }
 
-.form-row input:focus, .form-row select:focus {
-    border-color: #000000;
+.form-row input:focus, 
+.form-row select:focus {
+    border-color: #202c31;
+    box-shadow: 0 0 5px rgba(32, 44, 49, 0.75); /* Efek glow lebih lembut */
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 /* Tombol */
