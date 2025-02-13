@@ -1,0 +1,26 @@
+# File sistem atau konfigurasi yang sensitif
+config.php
+.env
+
+# Folder yang tidak perlu di-upload
+/database/
+uploads/
+backup/
+temp/
+logs/
+
+# File log dan cache
+*.log
+*.cache
+*.bak
+*.sql
+
+# File sementara dari editor
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# Jika ada file hasil export (PDF, Excel, dll.)
+/export/

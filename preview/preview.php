@@ -15,7 +15,17 @@ $role = $_SESSION['role'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="preview.css">
+    <link rel="stylesheet" href="../services/filterDropdown/select2.min.css">
+
+<!-- jQuery (Wajib, Lokal) -->
+<script src="../services/filterDropdown/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 JS (Lokal) -->
+<script src="../services/filterDropdown/select2js.min.js"></script>
+    
     <title>Preview Page</title>
+
+
 </head>
 <body>
     <!--SIDE NAVBAR-->

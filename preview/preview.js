@@ -81,121 +81,159 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    const productDropdown = document.getElementById('product');
-    const lotDropdown = document.getElementById('nolot');
- 
-    // Disable lot dropdown initially
-    lotDropdown.disabled = false;
- 
+    const productDropdown = $('#product');
+    const lotDropdown = $('#nolot');
+    
+    
+    // Initialize Select2 for both dropdowns
+    productDropdown.select2({
+        placeholder: "Select Product",
+        allowClear: true,
+        width: '100%'
+    });
+
+    lotDropdown.select2({
+        placeholder: "Select No. Lot",
+        allowClear: true,
+        width: '100%'
+    });
+
+
     // Populate Product Dropdown
     async function fetchProducts() {
         try {
             const response = await fetch('previewget.php?action=get_products');
             const result = await response.json();
- 
+
             if (result.status !== 'success') {
                 throw new Error(result.message || 'Failed to fetch products');
             }
- 
+
+            // Clear existing options except placeholder
+            productDropdown.empty().append('<option value="">Select Product</option>');
+
             result.data.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id_master;
-                option.textContent = product.product;
-                productDropdown.appendChild(option);
+                const option = new Option(product.product, product.id_master);
+                productDropdown.append(option);
             });
+
+            // Trigger change event to update Select2
+            productDropdown.trigger('change');
         } catch (error) {
             console.error('Error:', error);
             showNotification('Unable to load products. Please try again.', false);
         }
     }
- 
+
     // Populate Lot Dropdown
     async function fetchLots(selectedProduct) {
         try {
-            lotDropdown.innerHTML = '<option value="">Select No. Lot</option>';
- 
+            // Clear existing options except placeholder
+            lotDropdown.empty().append('<option value="">Select No. Lot</option>');
+
             if (!selectedProduct) return;
- 
+
             const response = await fetch(`previewget.php?action=get_lots&product=${selectedProduct}`);
             const result = await response.json();
- 
+
             if (result.status !== 'success') {
                 throw new Error(result.message || 'Failed to fetch lot numbers');
             }
- 
+
             result.data.forEach(lot => {
-                const option = document.createElement('option');
-                option.value = lot;
-                option.textContent = lot;
-                lotDropdown.appendChild(option);
+                const option = new Option(lot, lot);
+                lotDropdown.append(option);
             });
+
+            // Trigger change event to update Select2
+            lotDropdown.trigger('change');
         } catch (error) {
             console.error('Error:', error);
             showNotification('Unable to load lot numbers. Please try again.', false);
         }
     }
- 
+
     // Initial product fetch
     fetchProducts();
- 
+
     // Event listener for product dropdown
-    productDropdown.addEventListener('change', () => {
-        const selectedProduct = productDropdown.value;
- 
+    productDropdown.on('change', function() {
+        const selectedProduct = $(this).val();
+
         if (selectedProduct === '') {
             // Disable lot dropdown and reset
-            lotDropdown.disabled = true;
-            lotDropdown.innerHTML = '<option value="">Select No. Lot</option>';
+            lotDropdown.prop('disabled', true);
+            lotDropdown.empty().append('<option value="">Select No. Lot</option>');
+            lotDropdown.trigger('change');
         } else {
             // Enable lot dropdown and fetch lots
-            lotDropdown.disabled = false;
+            lotDropdown.prop('disabled', false);
             fetchLots(selectedProduct);
         }
     });
- 
-    // Event listener for lot dropdown
-    lotDropdown.addEventListener('click', () => {
-        if (productDropdown.value === '') {
+
+    // Event listener for lot dropdown click
+    lotDropdown.on('select2:opening', function(e) {
+        if (productDropdown.val() === '') {
+            e.preventDefault();
             showNotification('Please select a Product first.', false);
-            lotDropdown.blur();
         }
     });
- 
+
     // Event listener for form submission
     document.querySelector('.barcode-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const productDropdown = document.getElementById('product');
-        const lotDropdown = document.getElementById('nolot');
-        console.log('Selected Product:', productDropdown.value);
-        console.log('Selected Lot:', lotDropdown.value);
-        if (productDropdown.value === '' || lotDropdown.value === '') {
+        
+        const selectedProduct = productDropdown.val();
+        const selectedLot = lotDropdown.val();
+        
+        console.log('Selected Product:', selectedProduct);
+        console.log('Selected Lot:', selectedLot);
+        
+        if (selectedProduct === '' || selectedLot === '') {
             showNotification('Please select both Product and Lot Number.', false);
             return;
         }
+
         try {
             const response = await fetch('previewcheck.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `product=${productDropdown.value}&nolot=${lotDropdown.value}`
+                body: `product=${selectedProduct}&nolot=${selectedLot}`
             });
+            
             const result = await response.json();
             console.log(result);
+            
             if (result.status === 'success') {
                 window.location.href = '../report/report.php';
             } else {
                 showNotification('Data not found', false);
-                productDropdown.value = '';
-                lotDropdown.value = '';
-                lotDropdown.disabled = true;
-                lotDropdown.innerHTML = '<option value="">Select No. Lot</option>';
+                productDropdown.val('').trigger('change');
+                lotDropdown.val('').trigger('change');
+                lotDropdown.prop('disabled', true);
             }
         } catch (error) {
             console.error('Error:', error);
             showNotification('An error occurred. Please try again.', false);
         }
     });
+
+    // Event untuk tombol clear
+    document.querySelector('.btn-clear').addEventListener('click', function (event) {
+        event.preventDefault();
+        document.querySelector('.barcode-form').reset();
+        productDropdown.value = ""; // Reset waktu setelah clear
+        lotDropdown.value = '';
+        // Reset Select2 dropdown
+    $('#product').val('').trigger('change');
+      
+    });
+
+
+    
     // Fungsi untuk menampilkan notifikasi
     function showNotification(message, isSuccess) {
         // Buat elemen notifikasi

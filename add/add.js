@@ -132,61 +132,71 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => console.error('Error fetching last counter:', error));
     }
 
-    // Fetch daftar produk dari database
-    fetch('get_data.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error("Error fetching product list:", data.error);
-                return;
+    $(document).ready(function() {
+        // Inisialisasi Select2
+        $('#product').select2({
+            placeholder: "Select Product",
+            allowClear: true
+        });
+
+        // Fetch daftar produk dari database
+        fetch('get_data.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error("Error fetching product list:", data.error);
+                    return;
+                }
+                const productSelect = document.getElementById('product');
+                data.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product;
+                    option.textContent = product;
+                    productSelect.appendChild(option);
+                });
+
+                // Refresh Select2 untuk menampilkan opsi baru
+                $('#product').trigger('change');
+            })
+            .catch(error => console.error('Error fetching product list:', error));
+
+        // Event listener saat produk dipilih
+        $('#product').on('change', function () {
+            const selectedProduct = this.value;
+
+            // Reset nilai No Lot setiap kali produk berubah
+            lotNumberInput.value = '';
+
+            // Reset nilai Counter setiap kali produk berubah
+            counterInput.value = '';
+
+            // Reset nilai System Counter setiap kali produk berubah
+            systemCounterLarge.value = '';
+
+            if (selectedProduct) {
+                fetch(`get_data.php?product=${encodeURIComponent(selectedProduct)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error("Error fetching product details:", data.error);
+                            rssCodeInput.value = '';
+                            jamCodeInput.value = '';
+                            return;
+                        }
+                        
+                        rssCodeInput.value = data.rss_code || '';
+                        jamCodeInput.value = data.jam_code || '-';
+                        lotNumberInput.focus();
+
+                        dateInput.value = getCurrentDateTime(); // Set date otomatis setiap kali produk dipilih
+                    })
+                    .catch(error => console.error('Error fetching product details:', error));
+            } else {
+                rssCodeInput.value = '';
+                jamCodeInput.value = '';
             }
-            data.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product;
-                option.textContent = product;
-                productSelect.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Error fetching product list:', error));
-
-    // Event listener saat produk dipilih
-    productSelect.addEventListener('change', function () {
-        const selectedProduct = this.value;
-
-        // Reset nilai No Lot setiap kali produk berubah
-        lotNumberInput.value = '';
-
-        // Reset nilai Counter setiap kali produk berubah
-        counterInput.value = '';
-
-        // Reset nilai System Counter setiap kali produk berubah
-        systemCounterLarge.value = '';
-
-        if (selectedProduct) {
-            fetch(`get_data.php?product=${encodeURIComponent(selectedProduct)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error("Error fetching product details:", data.error);
-                        rssCodeInput.value = '';
-                        jamCodeInput.value = '';
-                        return;
-                    }
-                    
-                    rssCodeInput.value = data.rss_code || '';
-                    jamCodeInput.value = data.jam_code || '-';
-                    lotNumberInput.focus();
-
-                    dateInput.value = getCurrentDateTime(); // Set date otomatis setiap kali produk dipilih
-                })
-                .catch(error => console.error('Error fetching product details:', error));
-        } else {
-            rssCodeInput.value = '';
-            jamCodeInput.value = '';
-        }
+        });
     });
-
-
 
     lotNumberInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
@@ -313,51 +323,54 @@ lotNumberInput.addEventListener("input", function () {
     // Tambahkan elemen untuk animasi loading di dalam input
     loadingSpinner.classList.add('loading-spinner');
 
-    // Event listener untuk System Counter
-    systemCounterInput.addEventListener('input', function () {
-        const inputValue = systemCounterInput.value;
+ // Event listener untuk System Counter
+ let isLocked = false; // Variabel untuk mengunci input selama proses berlangsung
 
-        if (inputValue === rssCodeInput.value) {
-            currentCounter += 1; // Increment counter
-            counterInput.value = currentCounter; // Update tampilan counter
-            systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
-
-            dateInput.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
-
-            if (systemCounterInput.value.trim() !== '') {
-                loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
-            }
-
-            clearTimeout(timeoutId); // Hapus timeout sebelumnya
-
-            timeoutId = setTimeout(() => saveCounterToDatabase(), 1500); // Simpan setelah 1,5 detik
-        }else if(inputValue === jamCodeInput.value && jamCodeInput.value !== "-"){
-            currentCounter += 1; // Increment counter
-            counterInput.value = currentCounter; // Update tampilan counter
-            systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
-
-            dateInput.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
-
-            if (systemCounterInput.value.trim() !== '') {
-                loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
-            }
-
-            clearTimeout(timeoutId); // Hapus timeout sebelumnya
-
-            timeoutId = setTimeout(() => saveCounterToDatabase(), 1500); // Simpan setelah 1,5 detik
-        }
-        else{
-
-            clearTimeout(timeoutId); // Hapus timeout sebelumnya
-
-            timeoutId = setTimeout(() => {
-                showNotification('Mismatch RSS-Code/JAM-Code', false);
-                systemCounterInput.value = ''; // Kosongkan input
-            }, 1500);
-                       
-        }
-        
-    });
+ systemCounterInput.addEventListener('input', function () {
+     if (isLocked) return; // Jika sedang terkunci, hentikan proses
+ 
+     const inputValue = systemCounterInput.value;
+ 
+     if (inputValue === rssCodeInput.value) {
+         isLocked = true; // Kunci input
+         currentCounter += 1; // Increment counter
+         counterInput.value = currentCounter; // Update tampilan counter
+         systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
+         dateInput.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
+ 
+         if (systemCounterInput.value.trim() !== '') {
+             loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
+         }
+ 
+         clearTimeout(timeoutId); // Hapus timeout sebelumnya
+         timeoutId = setTimeout(() => {
+             saveCounterToDatabase();
+             isLocked = false; // Buka kunci setelah proses selesai
+         }, 1500); // Simpan setelah 1,5 detik
+     } else if (inputValue === jamCodeInput.value && jamCodeInput.value !== "-") {
+         isLocked = true; // Kunci input
+         currentCounter += 1; // Increment counter
+         counterInput.value = currentCounter; // Update tampilan counter
+         systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
+         dateInput.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
+ 
+         if (systemCounterInput.value.trim() !== '') {
+             loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
+         }
+ 
+         clearTimeout(timeoutId); // Hapus timeout sebelumnya
+         timeoutId = setTimeout(() => {
+             saveCounterToDatabase();
+             isLocked = false; // Buka kunci setelah proses selesai
+         }, 1500); // Simpan setelah 1,5 detik
+     } else {
+         clearTimeout(timeoutId); // Hapus timeout sebelumnya
+         timeoutId = setTimeout(() => {
+             showNotification('Mismatch RSS-Code/JAM-Code', false);
+             systemCounterInput.value = ''; // Kosongkan input
+         }, 1500);
+     }
+ });
 
     // Fungsi untuk mengirim data ke database setelah 1 detik
     function saveCounterToDatabase() {
@@ -453,6 +466,9 @@ lotNumberInput.addEventListener("input", function () {
         document.querySelector('.barcode-form').reset();
         dateInput.value = ""; // Reset waktu setelah clear
         systemCounterLarge.value = '';
+        // Reset Select2 dropdown
+    $('#product').val('').trigger('change');
+      
     });
 });
 
@@ -504,3 +520,7 @@ document.addEventListener('click', function (event) {
         accountMenu.classList.remove('show');
     }
 });
+
+
+
+
