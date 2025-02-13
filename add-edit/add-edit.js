@@ -84,8 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    const productDropdown = document.getElementById("productUP");
-    const noLotDropdown = document.getElementById("lot-numberUP");
+    const productDropdown = $('#productUP');
+    const noLotDropdown = $('#lot-numberUP');
     const counterField = document.getElementById("counterUP");
     const processButton = document.querySelector(".btn-process");
    
@@ -106,6 +106,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
      let currentCounter = 0; // Menyimpan nilai counter yang ada
      let timeoutId = null; // Untuk menyimpan setTimeout ID
+
+     // Initialize Select2 for both dropdowns
+    productDropdown.select2({
+        placeholder: "Select Product",
+        allowClear: true,
+        width: '100%'
+    });
+
+    noLotDropdown.select2({
+        placeholder: "Select No. Lot",
+        allowClear: true,
+        width: '100%'
+    });
+
+    
+     // Event listener for no lot dropdown click
+     productDropdown.on('select2:opening', function(e) {
+        $('#lot-numberUP').val('').trigger('change');
+    });
+
+     // Event listener for no lot dropdown click
+    noLotDropdown.on('select2:opening', function(e) {
+        if (!productDropdown.val()) {
+            e.preventDefault();
+            showNotification('Please select a Product first.', false);
+        }
+    });
 
     function getCurrentDateTime() {
         const now = new Date();
@@ -145,21 +172,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // Event listener untuk reset form bawah saat product diubah di form atas
-    productDropdown.addEventListener("change", function () {
+    productDropdown.on("change", function () {
         resetFormBawah();
     });
-
-    noLotDropdown.addEventListener("change", function () {
+    
+    noLotDropdown.on("change", function () {
         resetFormBawah2();
     });
 
-
-    noLotDropdown.addEventListener('click', () => {
-        if (productDropdown.value === '') {
-            showNotification('Please select a Product first.', false);
-            noLotDropdown.blur();
-        }
-    });
 
     
 
@@ -175,32 +195,56 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Fetch product list
-    fetch("fetch_options.php?action=getProducts")
-        .then(response => response.json())
-        .then(data => {
+    // Fetch and populate product list
+    async function fetchProducts() {
+        try {
+            const response = await fetch("fetch_options.php?action=getProducts");
+            const data = await response.json();
+            
+            // Clear existing options
+            productDropdown.empty().append('<option value="">Select Product</option>');
+            
             data.forEach(product => {
-                let option = new Option(product, product);
-                productDropdown.add(option);
+                const option = new Option(product, product);
+                productDropdown.append(option);
             });
-        })
-        .catch(error => console.error("Error fetching products:", error));
+            
+            productDropdown.trigger('change');
+        } catch (error) {
+            console.error("Error fetching products:", error);
+            showNotification('Unable to load products. Please try again.', false);
+        }
+    }
 
-    // Fetch No Lot (independent of Product)
-    fetch("fetch_options.php?action=getNoLots")
-        .then(response => response.json())
-        .then(data => {
+    // Fetch and populate No Lot list
+    async function fetchNoLots() {
+        try {
+            const response = await fetch("fetch_options.php?action=getNoLots");
+            const data = await response.json();
+            
+            // Clear existing options
+            noLotDropdown.empty().append('<option value="">Select No. Lot</option>');
+            
             data.forEach(noLot => {
-                let option = new Option(noLot, noLot);
-                noLotDropdown.add(option);
+                const option = new Option(noLot, noLot);
+                noLotDropdown.append(option);
             });
-        })
-        .catch(error => console.error("Error fetching No Lots:", error));
+            
+            noLotDropdown.trigger('change');
+        } catch (error) {
+            console.error("Error fetching No Lots:", error);
+            showNotification('Unable to load lot numbers. Please try again.', false);
+        }
+    }
+
+    // Initial fetch of products and lots
+    fetchProducts();
+    fetchNoLots();
 
     // Fetch counter when No Lot is selected
-    noLotDropdown.addEventListener("change", function () {
-        let selectedProduct = productDropdown.value;
-        let selectedNoLot = this.value;
+    noLotDropdown.on('change', function() {
+        let selectedProduct = productDropdown.val();
+        let selectedNoLot = $(this).val();
         counterField.value = "";
 
         if (selectedProduct && selectedNoLot) {
@@ -209,24 +253,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(data => {
                     counterField.value = data.counter || "";
                 })
-                .catch(error => console.error("Error fetching counter:", error));
+                .catch(error => {
+                    console.error("Error fetching counter:", error);
+                    showNotification('Unable to fetch counter. Please try again.', false);
+                });
         }
     });
 
 
 
     // Fetch and display process data when "Process" button is clicked
-    processButton.addEventListener("click", function (e) {
+    processButton.addEventListener("click", function(e) {
         e.preventDefault();
-        let selectedProduct = productDropdown.value;
-        let selectedNoLot = noLotDropdown.value;
+        let selectedProduct = productDropdown.val();
+        let selectedNoLot = noLotDropdown.val();
         let counter = counterField.value;
 
         if (!selectedProduct || !selectedNoLot || !counter) {
             showNotification('Please select Product, No. Lot, and ensure Counter is filled.', false);
-            return
+            return;
         }
-
 
         fetch(`fetch_process_data.php?product=${encodeURIComponent(selectedProduct)}&no_lot=${encodeURIComponent(selectedNoLot)}`)
             .then(response => response.json())
@@ -237,17 +283,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     jamCodeField.value = data.jam_code || "-";
                     lotNumberField.value = data.no_lot;
                     counterDisplayField.value = data.counter;
-                    dateField.value = getCurrentDateTime(); // Format: YYYY-MM-DD HH:MM:SS
+                    dateField.value = getCurrentDateTime();
 
-                    showNotification("Data successfully retrieved and displayed.",true);
+                    showNotification("Data successfully retrieved and displayed.", true);
                     systemCounterInput.focus();
                     lotNumberField.scrollIntoView({ behavior: "smooth", block: "center" });
-
                 } else {
-                    alert("No data found.");
+                    showNotification("No data found.", false);
                 }
             })
-            .catch(error => console.error("Error fetching data:", error));
+            .catch(error => {
+                console.error("Error fetching data:", error);
+                showNotification('An error occurred while processing. Please try again.', false);
+            });
     });
 
 
@@ -382,50 +430,54 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadingSpinner.classList.add('loading-spinner');
 
+ // Event listener untuk System Counter
+ let isLocked = false; // Variabel untuk mengunci input selama proses berlangsung
 
-    // Event listener untuk System Counter
-    systemCounterInput.addEventListener('input', function () {
-        const inputValue = systemCounterInput.value;
-
-        if (inputValue === rssCodeField.value) {
-            currentCounter = Number(counterDisplayField.value) + 1; // Increment counter
-            counterDisplayField.value = currentCounter; // Update tampilan counter
-            counterField.value = currentCounter;
-            systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
-
-            dateField.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
-
-            if (systemCounterInput.value.trim() !== '') {
-                loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
-            }
-
-            clearTimeout(timeoutId); // Hapus timeout sebelumnya
-
-            timeoutId = setTimeout(() => saveCounterToDatabase(), 1500); // Simpan setelah 1,5 detik
-        }else if(inputValue === jamCodeField.value && jamCodeField.value !== "-"){
-            currentCounter = Number(counterDisplayField.value) + 1; // Increment counter
-            counterDisplayField.value = currentCounter; // Update tampilan counter
-            systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
-
-            dateField.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
-
-            if (systemCounterInput.value.trim() !== '') {
-                loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
-            }
-
-            clearTimeout(timeoutId); // Hapus timeout sebelumnya
-
-            timeoutId = setTimeout(() => saveCounterToDatabase(), 1500); // Simpan setelah 1,5 detik
-        }else{
-
-        clearTimeout(timeoutId); // Hapus timeout sebelumnya
-
-        timeoutId = setTimeout(() => {
-            showNotification('Mismatch RSS-Code/JAM-Code', false);
-            systemCounterInput.value = ''; // Kosongkan input
-        }, 1500);
-        }
-    });
+ systemCounterInput.addEventListener('input', function () {
+     if (isLocked) return; // Jika sedang terkunci, hentikan proses
+ 
+     const inputValue = systemCounterInput.value;
+ 
+     if (inputValue === rssCodeField.value) {
+         isLocked = true; // Kunci input
+         currentCounter = Number(counterDisplayField.value)+1; // Increment counter
+         counterDisplayField.value = currentCounter; // Update tampilan counter
+         systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
+         dateField.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
+ 
+         if (systemCounterInput.value.trim() !== '') {
+             loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
+         }
+ 
+         clearTimeout(timeoutId); // Hapus timeout sebelumnya
+         timeoutId = setTimeout(() => {
+             saveCounterToDatabase();
+             isLocked = false; // Buka kunci setelah proses selesai
+         }, 1500); // Simpan setelah 1,5 detik
+     } else if (inputValue === jamCodeField.value && jamCodeField.value !== "-") {
+         isLocked = true; // Kunci input
+         currentCounter = Number(counterDisplayField.value)+1; // Increment counter
+         counterDisplayField.value = currentCounter; // Update tampilan counter
+         systemCounterLarge.value = currentCounter; // Tampilkan nilai counter di textarea
+         dateField.value = getCurrentDateTime(); // Perbarui nilai date setiap kali input diubah
+ 
+         if (systemCounterInput.value.trim() !== '') {
+             loadingSpinner.style.display = 'block'; // Tampilkan animasi loading
+         }
+ 
+         clearTimeout(timeoutId); // Hapus timeout sebelumnya
+         timeoutId = setTimeout(() => {
+             saveCounterToDatabase();
+             isLocked = false; // Buka kunci setelah proses selesai
+         }, 1500); // Simpan setelah 1,5 detik
+     } else {
+         clearTimeout(timeoutId); // Hapus timeout sebelumnya
+         timeoutId = setTimeout(() => {
+             showNotification('Mismatch RSS-Code/JAM-Code', false);
+             systemCounterInput.value = ''; // Kosongkan input
+         }, 1500);
+     }
+ });
 
 
     
@@ -519,7 +571,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Event untuk tombol clear
     document.querySelector('.btn-clear').addEventListener('click', function (event) {
         event.preventDefault();
+        
+        // Reset form utama
         document.querySelector('.barcode-form').reset();
+
+        // Reset semua input field
         productField.value = "";
         rssCodeField.value = "";
         jamCodeField.value = "";
@@ -528,8 +584,16 @@ document.addEventListener("DOMContentLoaded", function () {
         counterDisplayField.value = "";
         systemCounterInput.value = "";
         systemCounterLarge.value = "";
+        
+        // Reset Select2 untuk ProductUP dan Lot-numberUP
+        $('#productUP').val('').trigger('change');
+        $('#lot-numberUP').val('').trigger('change');
+
+
+        // Scroll ke tombol "Process"
         processButton.scrollIntoView({ behavior: "smooth", block: "center" });
     });
+
 });
 
 
