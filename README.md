@@ -118,12 +118,11 @@ SCANBL-3 incorporates several security measures to protect against common vulner
 ## Installation and Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/SCANBL-3.git
+   git clone https://github.com/razzanch/ScanBL-3-PT-Meiji-Indonesia.git
    ```
-2. Import the database schema from the `database` folder into your MySQL server.
-3. Configure the database connection in `config.php`.
-4. Deploy the application on a web server (e.g., Apache, Nginx).
-5. Access the application via your web browser.
+2. Import the database schema from the `db_scanbl3.sql` file into your MySQL server.
+3. Deploy the application on a web server (e.g., Apache, Nginx).
+4. Access the application via your web browser.
 
 ---
 
