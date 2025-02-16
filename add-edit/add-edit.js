@@ -120,6 +120,18 @@ document.addEventListener("DOMContentLoaded", function () {
         width: '100%'
     });
 
+    // Event listener saat Select2 akan dibuka
+    productDropdown.on('select2:opening', function (e) {
+        const selectedBuilding = document.getElementById('gedung').value; // Get value of Production Building
+
+        // If no production building is selected, show notification and prevent dropdown from opening
+        if (!selectedBuilding) {
+            showNotification("Please select the Production Building first!", false);
+            e.preventDefault(); // Prevent the dropdown from opening
+            return; // Stop the rest of the process
+        }
+    });
+
     
      // Event listener for no lot dropdown click
      productDropdown.on('select2:opening', function(e) {
@@ -196,25 +208,48 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Fetch and populate product list
-    async function fetchProducts() {
-        try {
-            const response = await fetch("fetch_options.php?action=getProducts");
-            const data = await response.json();
-            
-            // Clear existing options
-            productDropdown.empty().append('<option value="">Select Product</option>');
-            
-            data.forEach(product => {
-                const option = new Option(product, product);
-                productDropdown.append(option);
-            });
-            
-            productDropdown.trigger('change');
-        } catch (error) {
-            console.error("Error fetching products:", error);
-            showNotification('Unable to load products. Please try again.', false);
+    $(document).ready(function () {
+        const productDropdown = $('#productUP');
+        const gedungDropdown = $('#gedung');
+    
+        async function fetchProducts() {
+            const selectedGedung = gedungDropdown.val(); // Ambil nilai gedung yang dipilih
+            try {
+                const response = await fetch(`fetch_options.php?action=getProducts&gedung=${encodeURIComponent(selectedGedung)}`);
+                const data = await response.json();
+    
+                // Bersihkan opsi lama & tambahkan opsi default
+                productDropdown.empty().append('<option value="">Select Product</option>');
+    
+                data.forEach(product => {
+                    const option = new Option(product, product);
+                    productDropdown.append(option);
+                });
+    
+                productDropdown.trigger('change'); // Refresh Select2
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                showNotification('Unable to load products. Please try again.', false);
+            }
         }
-    }
+    
+        // Event listener untuk mengambil produk setelah gedung dipilih
+        gedungDropdown.on('change', function () {
+            if ($(this).val()) {
+                fetchProducts(); // Panggil saat gedung dipilih
+            } else {
+                // Reset dropdown jika gedung tidak dipilih
+                productDropdown.empty().append('<option value="">Select Product</option>');
+                productDropdown.trigger('change');
+            }
+        });
+    
+        // Panggil fetchProducts() saat halaman pertama kali dimuat jika gedung sudah dipilih
+        if (gedungDropdown.val()) {
+            fetchProducts();
+        }
+    });
+    
 
     // Fetch and populate No Lot list
     async function fetchNoLots() {
@@ -238,7 +273,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Initial fetch of products and lots
-    fetchProducts();
     fetchNoLots();
 
     // Fetch counter when No Lot is selected

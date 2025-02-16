@@ -12,10 +12,21 @@ if ($conn->connect_error) {
 
 // Ambil action dari request
 $action = isset($_GET['action']) ? $_GET['action'] : '';
+$gedung = isset($_GET['gedung']) ? $_GET['gedung'] : ''; // Ambil gedung dari request
 
 if ($action === 'getProducts') {
-    $query = "SELECT DISTINCT product FROM add_master";
-    $result = $conn->query($query);
+    if (!empty($gedung)) {
+        // Query dengan filter berdasarkan gedung
+        $query = "SELECT DISTINCT product FROM add_master WHERE gedung = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $gedung);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        // Query tanpa filter (tampilkan semua produk)
+        $query = "SELECT DISTINCT product FROM add_master";
+        $result = $conn->query($query);
+    }
 
     $products = [];
     while ($row = $result->fetch_assoc()) {

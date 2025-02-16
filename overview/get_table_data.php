@@ -29,9 +29,9 @@ if ($conn->connect_error) {
 if (isset($_GET['delete']) && isset($_GET['id'])) {
     $delete_id = $conn->real_escape_string($_GET['id']);
 
-    // Ambil data Barcode dan Product sebelum dihapus
+    // Ambil data Barcode, Product, dan id_master sebelum dihapus
     $select_query = "
-        SELECT am.rss_code AS Barcode, am.product AS Product 
+        SELECT am.rss_code AS Barcode, am.product AS Product, am.id_master AS id_master 
         FROM add_product AS ap
         INNER JOIN add_master AS am ON ap.add_master_id_master = am.id_master
         WHERE ap.id_add = '$delete_id'
@@ -40,7 +40,9 @@ if (isset($_GET['delete']) && isset($_GET['id'])) {
     $row = $result->fetch_assoc();
     $barcode = $row['Barcode'];
     $product = $row['Product'];
+    $id_master = $row['id_master'];
 
+    // Hapus data dari tabel add_product
     $delete_query = "DELETE FROM add_product WHERE id_add = '$delete_id'";
 
     if ($conn->query($delete_query) === TRUE) {
@@ -58,6 +60,26 @@ if (isset($_GET['delete']) && isset($_GET['id'])) {
             )
         ";
         $conn->query($update_log_query);
+
+        // Cek apakah masih ada data product terkait di tabel add_product
+        $check_product_query = "
+            SELECT COUNT(*) AS total 
+            FROM add_product 
+            WHERE add_master_id_master = '$id_master'
+        ";
+        $check_result = $conn->query($check_product_query);
+        $check_row = $check_result->fetch_assoc();
+        $total_remaining = $check_row['total'];
+
+        // Jika tidak ada data lagi, update status di tabel add_master menjadi "Inactive"
+        if ($total_remaining == 0) {
+            $update_status_query = "
+                UPDATE add_master 
+                SET status = 'Inactive' 
+                WHERE id_master = '$id_master'
+            ";
+            $conn->query($update_status_query);
+        }
 
         header("Location: overview.php?delete_success=1");
         exit();
@@ -101,6 +123,7 @@ $query = "
         am.rss_code AS Barcode,
         am.product AS Product,
         am.jam_code AS JamCode,
+        am.gedung AS gedung,
         ap.date AS Date,
         ap.counter AS Counter,
         ap.no_lot AS NoLot
@@ -126,6 +149,7 @@ if ($result->num_rows > 0) {
         echo "<td>" . (!empty($row['Date']) ? htmlspecialchars($row['Date']) : "-") . "</td>";
         echo "<td>" . (!empty($row['Counter']) ? htmlspecialchars($row['Counter']) : "-") . "</td>";
         echo "<td>" . (!empty($row['NoLot']) ? htmlspecialchars($row['NoLot']) : "-") . "</td>";
+        echo "<td>" . (!empty($row['gedung']) ? htmlspecialchars($row['gedung']) : "-") . "</td>";
         
         // Add Action column with delete icon
         echo "<td class='action-column'>";

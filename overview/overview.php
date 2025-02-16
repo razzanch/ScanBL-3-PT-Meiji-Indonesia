@@ -157,6 +157,7 @@ function redirectBasedOnRole() {
                 <th>Date</th>
                 <th>Counter</th>
                 <th>No. Lot</th>
+                <th>Building Production</th>
                 <th>Action</th>
                 </tr>
             </thead>

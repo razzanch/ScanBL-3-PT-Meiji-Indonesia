@@ -18,9 +18,11 @@ if ($conn->connect_error) {
 $product = isset($_POST['product']) ? trim($_POST['product']) : '';
 $rss_code = isset($_POST['rss-code']) ? trim($_POST['rss-code']) : '';
 $jam_code = isset($_POST['jam-code']) ? trim($_POST['jam-code']) : NULL; // Bisa NULL jika kosong
+$gedung = isset($_POST['gedung']) ? trim($_POST['gedung']) : '';  // Ambil data gedung
+$status = isset($_POST['status']) ? trim($_POST['status']) : 'Inactive'; // Ambil data status
 
 // Validasi input
-if (empty($product) || empty($rss_code)) {
+if (empty($product) || empty($rss_code) || empty($gedung)) {
     echo json_encode(["success" => false, "message" => "Harap isi semua field yang diperlukan."]);
     exit;
 }
@@ -41,9 +43,9 @@ if ($check_stmt->num_rows > 0) {
 $check_stmt->close();
 
 // Query untuk insert data
-$sql = "INSERT INTO add_master (product, rss_code, jam_code) VALUES (?, ?, ?)";
+$sql = "INSERT INTO add_master (product, rss_code, jam_code, gedung, status) VALUES (?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $product, $rss_code, $jam_code);
+$stmt->bind_param("sssss", $product, $rss_code, $jam_code, $gedung, $status);
 
 if ($stmt->execute()) {
     echo json_encode(["success" => true]);

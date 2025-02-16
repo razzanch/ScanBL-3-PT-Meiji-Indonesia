@@ -160,6 +160,17 @@ function redirectBasedOnRole() {
                     <!-- Bagian Kiri: Form utama -->
                     <div class="left-form">
                         <div class="form-row">
+                            <label for="gedung">Production Building</label>
+                            <select id="gedung" name="gedung">
+                            <option value="">Select Building</option>
+                                <option value="BL-1">BL-1</option>
+                                <option value="BL-2">BL-2</option>
+                                <option value="BL-3">BL-3</option>
+                                <option value="NBL">NBL</option>
+                                <option value="API">API</option>
+                            </select>                            
+                        </div>
+                        <div class="form-row">
                             <label for="productUP">Product</label>
                             <select id="productUP" name="productUP">
                                 <option value="">Select Product</option>

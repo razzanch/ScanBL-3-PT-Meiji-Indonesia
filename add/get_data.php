@@ -14,11 +14,27 @@ if ($conn->connect_error) {
     exit;
 }
 
-// Jika tidak ada parameter 'product', ambil daftar produk
+$gedung = isset($_GET['gedung']) ? $_GET['gedung'] : '';
+
+// Jika tidak ada parameter 'product' atau 'lot_number', ambil daftar produk dengan filter gedung jika tersedia
 if (!isset($_GET['product']) && !isset($_GET['lot_number'])) {
     $sql = "SELECT DISTINCT product FROM add_master";
-    $result = $conn->query($sql);
+    
+    // Jika gedung dipilih, tambahkan filter WHERE
+    if (!empty($gedung)) {
+        $sql .= " WHERE gedung = ?";
+    }
 
+    $stmt = $conn->prepare($sql);
+    
+    // Bind parameter jika gedung dipilih
+    if (!empty($gedung)) {
+        $stmt->bind_param("s", $gedung);
+    }
+    
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
     if (!$result) {
         echo json_encode(["error" => "Query error: " . $conn->error]);
         exit;
@@ -32,6 +48,7 @@ if (!isset($_GET['product']) && !isset($_GET['lot_number'])) {
     echo json_encode($products);
     exit;
 }
+
 
 // Jika ada parameter 'product' saja, ambil detailnya
 if (isset($_GET['product']) && !isset($_GET['lot_number'])) {

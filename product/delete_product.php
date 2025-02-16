@@ -26,57 +26,72 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $actual_product_name = isset($_POST['actual_product_name']) ? $_POST['actual_product_name'] : '';
     $confirm_product = isset($_POST['confirm_product']) ? $_POST['confirm_product'] : '';
 
-    // Verify product name matches before deletion
-    if ($actual_product_name === $confirm_product) {
-        // Start transaction
-        $conn->begin_transaction();
-
-        try {
-            // Step 1: Delete related data from add_product
-            $deleteProductQuery = "DELETE FROM add_product WHERE add_master_id_master = ?";
-            $deleteProductStmt = $conn->prepare($deleteProductQuery);
-            $deleteProductStmt->bind_param("i", $id_master);
-            $deleteProductStmt->execute();
-
-            // Step 2: Delete the main data from add_master
-            $deleteMasterQuery = "DELETE FROM add_master WHERE id_master = ? AND product = ?";
-            $deleteMasterStmt = $conn->prepare($deleteMasterQuery);
-            $deleteMasterStmt->bind_param("is", $id_master, $actual_product_name);
-            $deleteMasterStmt->execute();
-
-            // Step 3: Update log_add_product untuk mencatat operator yang menghapus data
-            $update_log_query = "
-                UPDATE log_add_product 
-                SET operator = ?
-                WHERE Change_Date IN (
-                    SELECT * FROM (
-                        SELECT MAX(Change_Date) 
-                        FROM log_add_product 
-                        WHERE Product = ? 
-                        GROUP BY Product
-                    ) AS subquery
-                )
-            ";
-            $updateLogStmt = $conn->prepare($update_log_query);
-            $updateLogStmt->bind_param("ss", $username, $actual_product_name);
-            $updateLogStmt->execute();
-
-            $conn->commit();
-            header("Location: ../product/product.php?delete_success=1");
-            exit();
-        } catch (Exception $e) {
-            $conn->rollback();
-            header("Location: ../product/product.php?delete_error=1");
-            exit();
-        }
-
-        $deleteProductStmt->close();
-        $deleteMasterStmt->close();
-        $updateLogStmt->close();
-    } else {
+    // Cek apakah nama produk sesuai
+    if ($actual_product_name !== $confirm_product) {
         header("Location: ../product/product.php?status=error&message=Product name mismatch");
         exit();
     }
+
+    // Cek status produk di tabel add_master
+    $statusQuery = "SELECT status FROM add_master WHERE id_master = ?";
+    $statusStmt = $conn->prepare($statusQuery);
+    $statusStmt->bind_param("i", $id_master);
+    $statusStmt->execute();
+    $statusStmt->bind_result($status);
+    $statusStmt->fetch();
+    $statusStmt->close();
+
+    // Jika status aktif, batalkan penghapusan
+    if ($status === "Active") {
+        header("Location: ../product/product.php?delete_restricted=1");
+        exit();
+    }
+
+    // Jika status "Inactive", lanjutkan penghapusan
+    $conn->begin_transaction();
+
+    try {
+        // Step 1: Delete related data from add_product
+        $deleteProductQuery = "DELETE FROM add_product WHERE add_master_id_master = ?";
+        $deleteProductStmt = $conn->prepare($deleteProductQuery);
+        $deleteProductStmt->bind_param("i", $id_master);
+        $deleteProductStmt->execute();
+
+        // Step 2: Delete the main data from add_master
+        $deleteMasterQuery = "DELETE FROM add_master WHERE id_master = ? AND product = ?";
+        $deleteMasterStmt = $conn->prepare($deleteMasterQuery);
+        $deleteMasterStmt->bind_param("is", $id_master, $actual_product_name);
+        $deleteMasterStmt->execute();
+
+        // Step 3: Update log_add_product untuk mencatat operator yang menghapus data
+        $update_log_query = "
+            UPDATE log_add_product 
+            SET operator = ? 
+            WHERE Change_Date IN (
+                SELECT * FROM (
+                    SELECT MAX(Change_Date) 
+                    FROM log_add_product 
+                    WHERE Product = ? 
+                    GROUP BY Product
+                ) AS subquery
+            )
+        ";
+        $updateLogStmt = $conn->prepare($update_log_query);
+        $updateLogStmt->bind_param("ss", $username, $actual_product_name);
+        $updateLogStmt->execute();
+
+        $conn->commit();
+        header("Location: ../product/product.php?delete_success=1");
+        exit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        header("Location: ../product/product.php?delete_error=1");
+        exit();
+    }
+
+    $deleteProductStmt->close();
+    $deleteMasterStmt->close();
+    $updateLogStmt->close();
 }
 
 $conn->close();

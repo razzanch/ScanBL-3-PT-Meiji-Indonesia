@@ -255,12 +255,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlParams.has('delete_success')) {
         showNotification('Data successfully deleted');
     } else if (urlParams.has('delete_error')) {
-        showNotification('Error deleting data', 'error');
+        showNotification('Product name mismatch', 'error');
+    }else if (urlParams.has('delete_restricted')) {
+        showNotification('Products cannot be deleted because there is already a transaction history', 'error');
     }
 
     // Remove the success/error parameters from URL without refreshing
     if (urlParams.has('update_success') || urlParams.has('update_error') || 
-        urlParams.has('delete_success') || urlParams.has('delete_error')) {
+        urlParams.has('delete_success') || urlParams.has('delete_error') || urlParams.has('delete_restricted') ) {
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
     }

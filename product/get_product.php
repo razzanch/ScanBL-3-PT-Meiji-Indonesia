@@ -39,7 +39,9 @@ $query = "
         id_master,
         rss_code AS Barcode,
         product AS Product,
-        jam_code AS JamCode
+        jam_code AS JamCode,
+        gedung AS PB,
+        status AS status
     FROM add_master
     $where_clause
     ORDER BY product ASC
@@ -452,6 +454,8 @@ if ($result->num_rows > 0) {
         echo "<td>" . (!empty($row['Barcode']) ? htmlspecialchars($row['Barcode']) : "-") . "</td>";
         echo "<td>" . (!empty($row['Product']) ? htmlspecialchars($row['Product']) : "-") . "</td>";
         echo "<td>" . (!empty($row['JamCode']) ? htmlspecialchars($row['JamCode']) : "-") . "</td>";
+        echo "<td>" . (!empty($row['PB']) ? htmlspecialchars($row['PB']) : "-") . "</td>";
+        echo "<td>" . (!empty($row['status']) ? htmlspecialchars($row['status']) : "-") . "</td>";
         echo "<td class='action-column'>";
         echo "<a href='#' onclick='openEditModal(" . 
             json_encode([

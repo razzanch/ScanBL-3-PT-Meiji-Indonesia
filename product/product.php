@@ -150,6 +150,8 @@ function redirectBasedOnRole() {
                 <th>Barcode</th>
                 <th>Product</th>
                 <th>Jam Code</th>
+                <th>Production Building</th>
+                <th>Status</th>
                 <th>Actions
             </thead>
             <tbody>

@@ -33,39 +33,21 @@ if (empty($_POST)) {
     exit;
 }
 
-// Ambil data dari POST dan session
-$product = $_POST['product'] ?? '';
-$lot_number = $_POST['lot_number'] ?? '';
-$date = $_POST['date'] ?? '';
-$counter = $_POST['counter'] ?? '';
-$operator = $_SESSION['username']; // Ambil username dari session
+// Ambil data dari POST
+$id_master = $_POST['id_master'] ?? '';
 
 // Validasi input
-if (!$product || !$lot_number || !$counter) {
+if (!$id_master) {
     echo json_encode(["success" => false, "error" => "Missing required fields"]);
     exit;
 }
 
-// Ambil id_master dari add_master berdasarkan product
-$sql = "SELECT id_master FROM add_master WHERE product = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $product);
-$stmt->execute();
-$stmt->bind_result($id_master);
-$stmt->fetch();
-$stmt->close();
-
-if (!$id_master) {
-    echo json_encode(["success" => false, "error" => "Product not found in add_master"]);
-    exit;
-}
-
-// Update query untuk menyertakan operator
-$stmt = $conn->prepare("INSERT INTO add_product (no_lot, counter, add_master_id_master, operator) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("siis", $lot_number, $counter, $id_master, $operator);
+// Update status di tabel add_master
+$stmt = $conn->prepare("UPDATE add_master SET status = 'Active' WHERE id_master = ?");
+$stmt->bind_param("i", $id_master);
 
 if ($stmt->execute()) {
-    echo json_encode(["success" => true, "id_master" => $id_master]);
+    echo json_encode(["success" => true]);
 } else {
     echo json_encode(["success" => false, "error" => $stmt->error]);
 }

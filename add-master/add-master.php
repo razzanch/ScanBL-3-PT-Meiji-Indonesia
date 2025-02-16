@@ -151,6 +151,17 @@ function redirectBasedOnRole() {
                 <form class="barcode-form" id="addMasterForm">
                     <div class="left-form">
                         <div class="form-row">
+                            <label for="gedung">Production Building</label>
+                            <select id="gedung" name="gedung" required>
+                                <option value="">Select Building</option>
+                                <option value="BL-1">BL-1</option>
+                                <option value="BL-2">BL-2</option>
+                                <option value="BL-3">BL-3</option>
+                                <option value="NBL">NBL</option>
+                                <option value="API">API</option>
+                            </select>                            
+                        </div>
+                        <div class="form-row">
                             <label for="product">Product</label>
                             <input type="text" id="product" name="product" placeholder="Press 'Enter' to Confirm Product Input" required>
                         </div>
@@ -162,6 +173,27 @@ function redirectBasedOnRole() {
                             <label for="jam-code">JAM-Code</label>
                             <input type="text" id="jam-code" name="jam-code" placeholder="Enter JAM-Code" required>
                         </div>
+                        <div class="form-row">
+    <label for="status">Status</label>
+    <input type="text" id="status" name="status" value="Inactive" readonly>
+    
+    <div class="custom-text-note-container">
+    Note : The "inactive" value will change if product data is added to the overview table
+    </div>
+</div>
+
+<style>
+    .custom-text-note-container {
+        background-color: #202C31; /* Slightly brighter than modal background */
+        border-left: 4px solid yellow;
+        padding: 10px;
+        margin-top: 20px;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Shadow for 3D effect */
+        color: yellow;
+        font-size: 0.9rem;
+    }
+</style>
                     </div>
 
                 

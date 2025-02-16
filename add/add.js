@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
+    const productionBuildingSelect = document.getElementById('gedung');
     const productSelect = document.getElementById('product');
     const lotNumberInput = document.getElementById('lot-number');
     const rssCodeInput = document.getElementById('rss-code');
@@ -137,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Fungsi untuk mereset semua input field
     function resetAllFields() {
+        productionBuildingSelect.value = "";
         productSelect.value = "";
         lotNumberInput.value = "";
         rssCodeInput.value = "";
@@ -157,65 +159,81 @@ document.addEventListener('DOMContentLoaded', function () {
             placeholder: "Select Product",
             allowClear: true
         });
-
-        // Fetch daftar produk dari database
-        fetch('get_data.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error("Error fetching product list:", data.error);
-                    return;
-                }
-                const productSelect = document.getElementById('product');
-                data.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product;
-                    option.textContent = product;
-                    productSelect.appendChild(option);
-                });
-
-                // Refresh Select2 untuk menampilkan opsi baru
-                $('#product').trigger('change');
-            })
-            .catch(error => console.error('Error fetching product list:', error));
-
+    
+        // Fungsi untuk mengambil daftar produk berdasarkan gedung
+        function fetchProductsByBuilding(building) {
+            const productSelect = document.getElementById('product');
+            productSelect.innerHTML = '<option value="">Loading...</option>'; // Sementara tampilkan loading
+    
+            fetch(`get_data.php?gedung=${encodeURIComponent(building)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error("Error fetching product list:", data.error);
+                        productSelect.innerHTML = '<option value="">No Products Available</option>';
+                        return;
+                    }
+    
+                    productSelect.innerHTML = '<option value="">Select Product</option>'; // Reset opsi dropdown
+                    data.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product;
+                        option.textContent = product;
+                        productSelect.appendChild(option);
+                    });
+    
+                    // Refresh Select2 untuk menampilkan opsi baru
+                    $('#product').trigger('change');
+                })
+                .catch(error => console.error('Error fetching product list:', error));
+        }
+    
+        // Event listener untuk perubahan pada gedung
+        $('#gedung').on('change', function () {
+            const selectedBuilding = this.value;
+            if (selectedBuilding) {
+                fetchProductsByBuilding(selectedBuilding);
+            } else {
+                document.getElementById('product').innerHTML = '<option value="">Select Product</option>';
+                $('#product').trigger('change'); // Reset Select2
+            }
+        });
+    
+        // Event listener saat Select2 akan dibuka
+        $('#product').on('select2:opening', function (e) {
+            const selectedBuilding = document.getElementById('gedung').value;
+            if (!selectedBuilding) {
+                showNotification("Please select the Production Building first!", "error");
+                e.preventDefault(); // Mencegah dropdown dari terbuka
+                return;
+            }
+        });
+    
         // Event listener saat produk dipilih
-        $('#product').on('change', function () {
-            const selectedProduct = this.value;
-
-            // Reset nilai No Lot setiap kali produk berubah
-            lotNumberInput.value = '';
-
-            // Reset nilai Counter setiap kali produk berubah
-            counterInput.value = '';
-
-            // Reset nilai System Counter setiap kali produk berubah
-            systemCounterLarge.value = '';
-
-            if (selectedProduct) {
+        $('#product').on('select2:select', function (e) {
+            const selectedProduct = e.params.data.id;
+            const selectedBuilding = document.getElementById('gedung').value;
+    
+            if (selectedProduct && selectedBuilding) {
                 fetch(`get_data.php?product=${encodeURIComponent(selectedProduct)}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
                             console.error("Error fetching product details:", data.error);
-                            rssCodeInput.value = '';
-                            jamCodeInput.value = '';
                             return;
                         }
-                        
-                        rssCodeInput.value = data.rss_code || '';
-                        jamCodeInput.value = data.jam_code || '-';
-                        lotNumberInput.focus();
-
-                        dateInput.value = getCurrentDateTime(); // Set date otomatis setiap kali produk dipilih
+    
+                        // Update form dengan data produk yang dipilih
+                        document.getElementById('rss-code').value = data.rss_code || '';
+                        document.getElementById('jam-code').value = data.jam_code || '-';
+                        document.getElementById('date').value = getCurrentDateTime();
+                        document.getElementById('lot-number').focus();
                     })
                     .catch(error => console.error('Error fetching product details:', error));
-            } else {
-                rssCodeInput.value = '';
-                jamCodeInput.value = '';
             }
         });
     });
+    
 
     
 
@@ -290,7 +308,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    
 
 
 
@@ -395,98 +412,118 @@ systemCounterInput.addEventListener('input', function () {
     }
 });
 
-    // Fungsi untuk mengirim data ke database setelah 1 detik
-    function saveCounterToDatabase() {
-        const product = productSelect.value;
-        const lotNumber = lotNumberInput.value;
-        const date = getCurrentDateTime();
+function saveCounterToDatabase() {
+    const product = productSelect.value;
+    const lotNumber = lotNumberInput.value;
+    const date = getCurrentDateTime();
 
-        if (!product || !lotNumber) {
-            alert('Harap pilih produk dan isi No Lot terlebih dahulu!');
-            loadingSpinner.style.display = 'none'; // Sembunyikan animasi jika ada kesalahan
-            return;
-        }
-
-        const formData = new URLSearchParams();
-        formData.append('product', product);
-        formData.append('lot_number', lotNumber);
-        formData.append('date', date);
-        formData.append('counter', currentCounter);
-
-        fetch('post_data.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log("Data berhasil dikirim ke database:", formData.toString());
-
-                // Play success sound
-                successSound.play().catch(e => console.error('Error playing sound:', e));
-
-                if ('Notification' in window) {
-                    if (Notification.permission === 'granted') {
-                        new Notification('Success', {
-                            body: 'Data has been successfully saved to the database',
-                            icon: '../assets/icon-success.png'
-                        });
-                    } else if (Notification.permission !== 'denied') {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                new Notification('Success', {
-                                    body: 'Data has been successfully saved to the database',
-                                    icon: '../assets/icon-success.png'
-                                });
-                            }
-                        });
-                    }
-                }
-                
-                // On-screen notification with icon
-                const notification = document.createElement('div');
-                notification.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="../assets/icon-success.png" alt="Success" style="width: 24px; height: 24px;">
-                        <span>Data successfully saved to database</span>
-                    </div>
-                `;
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 15px;
-                    border-radius: 4px;
-                    z-index: 1000;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                    min-width: 300px;
-                    font-family: 'Arial', sans-serif;
-                    font-size: 14px;
-                    display: flex;
-                    align-items: center;
-                `;
-                document.body.appendChild(notification);
-                setTimeout(() => notification.remove(), 2000); // Remove after 2 seconds
-
-                // Kosongkan System Counter dan System Counter Large setelah data disimpan
-                systemCounterInput.value = '';
-                systemCounterLarge.value = '';
-            } else {
-                console.error("Error dari server:", data.error);
-                alert('Terjadi kesalahan saat menambahkan data: ' + (data.error || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            alert('Terjadi kesalahan saat mengirim data: ' + error);
-        })
-        .finally(() => {
-            loadingSpinner.style.display = 'none'; // Sembunyikan animasi setelah selesai
-        });
+    if (!product || !lotNumber) {
+        alert('Harap pilih produk dan isi No Lot terlebih dahulu!');
+        loadingSpinner.style.display = 'none'; // Sembunyikan animasi jika ada kesalahan
+        return;
     }
+
+    const formData = new URLSearchParams();
+    formData.append('product', product);
+    formData.append('lot_number', lotNumber);
+    formData.append('date', date);
+    formData.append('counter', currentCounter);
+
+    fetch('post_data.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("Data berhasil dikirim ke database:", formData.toString());
+
+            // Play success sound
+            successSound.play().catch(e => console.error('Error playing sound:', e));
+
+            if ('Notification' in window) {
+                if (Notification.permission === 'granted') {
+                    new Notification('Success', {
+                        body: 'Data has been successfully saved to the database',
+                        icon: '../assets/icon-success.png'
+                    });
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('Success', {
+                                body: 'Data has been successfully saved to the database',
+                                icon: '../assets/icon-success.png'
+                            });
+                        }
+                    });
+                }
+            }
+            
+            // On-screen notification with icon
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="../assets/icon-success.png" alt="Success" style="width: 24px; height: 24px;">
+                    <span>Data successfully saved to database</span>
+                </div>
+            `;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #4CAF50;
+                color: white;
+                padding: 15px;
+                border-radius: 4px;
+                z-index: 1000;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                min-width: 300px;
+                font-family: 'Arial', sans-serif;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000); // Remove after 2 seconds
+
+            // Kosongkan System Counter dan System Counter Large setelah data disimpan
+            systemCounterInput.value = '';
+            systemCounterLarge.value = '';
+
+            // Update status di tabel add_master
+            const updateStatusData = new URLSearchParams();
+            updateStatusData.append('id_master', data.id_master);
+
+            fetch('update_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: updateStatusData.toString()
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Status berhasil diupdate ke 'Active'");
+                } else {
+                    console.error("Error dari server:", data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+        } else {
+            console.error("Error dari server:", data.error);
+            alert('Terjadi kesalahan saat menambahkan data: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Terjadi kesalahan saat mengirim data: ' + error);
+    })
+    .finally(() => {
+        loadingSpinner.style.display = 'none'; // Sembunyikan animasi setelah selesai
+    });
+}
 
     // Event untuk tombol clear
     document.querySelector('.btn-clear').addEventListener('click', function (event) {

@@ -35,7 +35,7 @@
             <div class="overlay-container">
                 <img src="../assets/ScanBL3.png" alt="ScanBL3">
                 <p>
-                    ScanBL3 adalah aplikasi berbasis web yang dirancang untuk memindai label barcode pada produk PT Meiji Indonesia, memberikan informasi lengkap mengenai jenis, jumlah, dan detail produk dengan cepat dan akurat.
+                    ScanMP (Meiji Production) adalah aplikasi berbasis web yang dirancang untuk memindai label barcode pada produk PT Meiji Indonesia, memberikan informasi lengkap mengenai jenis, jumlah, dan detail produk dengan cepat dan akurat.
                 </p>
             </div>
         </div>
