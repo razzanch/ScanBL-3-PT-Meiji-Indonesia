@@ -191,11 +191,21 @@ document.addEventListener('DOMContentLoaded', function () {
         // Event listener untuk perubahan pada gedung
         $('#gedung').on('change', function () {
             const selectedBuilding = this.value;
+            
+            // Reset nilai field lainnya
+            document.getElementById('product').innerHTML = '<option value="">Select Product</option>';
+            document.getElementById('rss-code').value = '';
+            document.getElementById('jam-code').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('lot-number').value = '';
+            document.getElementById('counter').value = '';
+
+            // Menyegarkan Select2
+            $('#product').trigger('change'); // Reset Select2
+            
+            // Jika ada building yang dipilih, ambil produk sesuai gedung
             if (selectedBuilding) {
                 fetchProductsByBuilding(selectedBuilding);
-            } else {
-                document.getElementById('product').innerHTML = '<option value="">Select Product</option>';
-                $('#product').trigger('change'); // Reset Select2
             }
         });
     
@@ -213,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#product').on('select2:select', function (e) {
             const selectedProduct = e.params.data.id;
             const selectedBuilding = document.getElementById('gedung').value;
-    
+
             if (selectedProduct && selectedBuilding) {
                 fetch(`get_data.php?product=${encodeURIComponent(selectedProduct)}`)
                     .then(response => response.json())
@@ -222,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.error("Error fetching product details:", data.error);
                             return;
                         }
-    
+
                         // Update form dengan data produk yang dipilih
                         document.getElementById('rss-code').value = data.rss_code || '';
                         document.getElementById('jam-code').value = data.jam_code || '-';
@@ -232,10 +242,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     .catch(error => console.error('Error fetching product details:', error));
             }
         });
-    });
-    
 
-    
+        // Event listener saat tombol "X" di Select2 diklik (clear product)
+        $('#product').on('select2:unselect', function () {
+            // Reset nilai form ketika produk di-clear
+            document.getElementById('rss-code').value = '';
+            document.getElementById('jam-code').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('lot-number').value = '';
+            document.getElementById('counter').value = '';
+        });
+    });
 
     // Event listener untuk tombol Enter pada No Lot
     lotNumberInput.addEventListener('keydown', function (event) {

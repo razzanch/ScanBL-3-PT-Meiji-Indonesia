@@ -101,13 +101,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const systemCounterLarge = document.getElementById('system-counter-large');
 
 
-     // Create audio element for success sound
-     const successSound = new Audio('../assets/success.mp3');
+    // Create audio element for success sound
+    const successSound = new Audio('../assets/success.mp3');
 
-     let currentCounter = 0; // Menyimpan nilai counter yang ada
-     let timeoutId = null; // Untuk menyimpan setTimeout ID
+    let currentCounter = 0; // Menyimpan nilai counter yang ada
+    let timeoutId = null; // Untuk menyimpan setTimeout ID
 
-     // Initialize Select2 for both dropdowns
+    // Initialize Select2 for both dropdowns
     productDropdown.select2({
         placeholder: "Select Product",
         allowClear: true,
@@ -186,6 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Event listener untuk reset form bawah saat product diubah di form atas
     productDropdown.on("change", function () {
         resetFormBawah();
+        noLotDropdown.val('').trigger('change'); // Reset no lot setelah produk diubah
     });
     
     noLotDropdown.on("change", function () {
@@ -210,91 +211,95 @@ document.addEventListener("DOMContentLoaded", function () {
     // Fetch and populate product list
     $(document).ready(function () {
         const productDropdown = $('#productUP');
+        const noLotDropdown = $('#lot-numberUP');
+        const counterField = document.getElementById("counterUP");
         const gedungDropdown = $('#gedung');
-    
+        
         async function fetchProducts() {
             const selectedGedung = gedungDropdown.val(); // Ambil nilai gedung yang dipilih
             try {
                 const response = await fetch(`fetch_options.php?action=getProducts&gedung=${encodeURIComponent(selectedGedung)}`);
                 const data = await response.json();
-    
+
                 // Bersihkan opsi lama & tambahkan opsi default
                 productDropdown.empty().append('<option value="">Select Product</option>');
-    
+        
                 data.forEach(product => {
                     const option = new Option(product, product);
                     productDropdown.append(option);
                 });
-    
+
                 productDropdown.trigger('change'); // Refresh Select2
             } catch (error) {
                 console.error("Error fetching products:", error);
                 showNotification('Unable to load products. Please try again.', false);
             }
         }
-    
+
+        async function fetchNoLots() {
+            try {
+                const response = await fetch("fetch_options.php?action=getNoLots");
+                const data = await response.json();
+                
+                // Clear existing options
+                noLotDropdown.empty().append('<option value="">Select No. Lot</option>');
+                
+                data.forEach(noLot => {
+                    const option = new Option(noLot, noLot);
+                    noLotDropdown.append(option);
+                });
+                
+                noLotDropdown.trigger('change');
+            } catch (error) {
+                console.error("Error fetching No Lots:", error);
+                showNotification('Unable to load lot numbers. Please try again.', false);
+            }
+        }
+
         // Event listener untuk mengambil produk setelah gedung dipilih
         gedungDropdown.on('change', function () {
-            if ($(this).val()) {
-                fetchProducts(); // Panggil saat gedung dipilih
+            const selectedBuilding = $(this).val();
+            
+            // Reset nilai produk, no lot, dan counter saat gedung dipilih
+            if (selectedBuilding) {
+                // Ambil produk sesuai gedung
+                fetchProducts();
             } else {
-                // Reset dropdown jika gedung tidak dipilih
+                // Reset produk, no lot, dan counter jika gedung tidak dipilih
                 productDropdown.empty().append('<option value="">Select Product</option>');
+                noLotDropdown.empty().append('<option value="">Select No. Lot</option>');
+                counterField.value = ''; // Reset counter field
                 productDropdown.trigger('change');
             }
-        });
-    
+        });        
+
         // Panggil fetchProducts() saat halaman pertama kali dimuat jika gedung sudah dipilih
         if (gedungDropdown.val()) {
             fetchProducts();
         }
-    });
-    
 
-    // Fetch and populate No Lot list
-    async function fetchNoLots() {
-        try {
-            const response = await fetch("fetch_options.php?action=getNoLots");
-            const data = await response.json();
-            
-            // Clear existing options
-            noLotDropdown.empty().append('<option value="">Select No. Lot</option>');
-            
-            data.forEach(noLot => {
-                const option = new Option(noLot, noLot);
-                noLotDropdown.append(option);
-            });
-            
-            noLotDropdown.trigger('change');
-        } catch (error) {
-            console.error("Error fetching No Lots:", error);
-            showNotification('Unable to load lot numbers. Please try again.', false);
-        }
-    }
+        // Initial fetch of lots
+        fetchNoLots();
 
-    // Initial fetch of products and lots
-    fetchNoLots();
+        // Fetch counter when No Lot is selected
+        noLotDropdown.on('change', function() {
+            let selectedProduct = productDropdown.val();
+            let selectedNoLot = $(this).val();
+            counterField.value = "";
 
-    // Fetch counter when No Lot is selected
-    noLotDropdown.on('change', function() {
-        let selectedProduct = productDropdown.val();
-        let selectedNoLot = $(this).val();
-        counterField.value = "";
-
-        if (selectedProduct && selectedNoLot) {
-            fetch(`fetch_options.php?action=getCounter&product=${encodeURIComponent(selectedProduct)}&no_lot=${encodeURIComponent(selectedNoLot)}`)
-                .then(response => response.json())
-                .then(data => {
-                    counterField.value = data.counter || "";
-                })
-                .catch(error => {
-                    console.error("Error fetching counter:", error);
-                    showNotification('Unable to fetch counter. Please try again.', false);
-                });
-        }
-    });
-
-
+            if (selectedProduct && selectedNoLot) {
+                fetch(`fetch_options.php?action=getCounter&product=${encodeURIComponent(selectedProduct)}&no_lot=${encodeURIComponent(selectedNoLot)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        counterField.value = data.counter || "";
+                    })
+                    .catch(error => {
+                        console.error("Error fetching counter:", error);
+                        showNotification('Unable to fetch counter. Please try again.', false);
+                    });
+            }
+        });
+    });  
 
     // Fetch and display process data when "Process" button is clicked
     processButton.addEventListener("click", function(e) {
